@@ -52,7 +52,7 @@ jobs:
       attestations: read
       contents: read
     steps:
-      - name: Check out the candidate revision
+      - name: Check out the deployment controller
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -71,10 +71,35 @@ jobs:
           esac
 
       - name: Verify protected release lineage
+        id: release_source
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_RUN_ID: ${{ inputs.release_run_id }}
           RELEASE_VERSION: ${{ inputs.version }}
-        run: tools/verify-release-tag.sh "$RELEASE_VERSION" "$GITHUB_SHA"
+        run: |
+          run_path=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" \
+            --jq .path)
+          run_conclusion=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" \
+            --jq .conclusion)
+          release_commit=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" \
+            --jq .head_sha)
+          test "$run_path" = ".github/workflows/release.yml"
+          test "$run_conclusion" = success
+          printf '%s\n' "$release_commit" | grep -Eq '^[0-9a-f]{40}$'
+          tools/verify-release-tag.sh "$RELEASE_VERSION" "$release_commit"
+          case "$GITHUB_REF_TYPE:$GITHUB_REF_NAME" in
+            branch:main)
+              controller_main=$(git rev-parse refs/neuralstock-verification/main)
+              test "$GITHUB_SHA" = "$controller_main"
+              ;;
+            tag:v"$RELEASE_VERSION")
+              test "$GITHUB_SHA" = "$release_commit"
+              ;;
+          esac
+          echo "commit=$release_commit" >>"$GITHUB_OUTPUT"
 
       - name: Enforce two-phase retention boundary
         env:
@@ -118,6 +143,7 @@ jobs:
       - name: Download release candidate
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ steps.release_source.outputs.commit }}
           RELEASE_RUN_ID: ${{ inputs.release_run_id }}
         run: |
           run_path=$(gh api \
@@ -131,7 +157,7 @@ jobs:
             --jq .head_sha)
           test "$run_path" = ".github/workflows/release.yml"
           test "$run_conclusion" = success
-          test "$run_sha" = "$GITHUB_SHA"
+          test "$run_sha" = "$RELEASE_COMMIT"
 
       - name: Download release candidate artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -145,12 +171,14 @@ jobs:
         env:
           EXPECTED_REVISION: ${{ inputs.registry_revision }}
           EXPECTED_VERSION: ${{ inputs.version }}
+          RELEASE_COMMIT: ${{ steps.release_source.outputs.commit }}
         run: |
           tools/verify-release-candidate.sh \
             dist/release-candidate \
             "$EXPECTED_VERSION" \
             "$EXPECTED_REVISION"
-          test "$(jq -r .source_commit dist/release-candidate/release-metadata.json)" = "$GITHUB_SHA"
+          test "$(jq -r .source_commit dist/release-candidate/release-metadata.json)" = \
+            "$RELEASE_COMMIT"
 
       - name: Extract verified release
         run: |
@@ -380,6 +408,7 @@ jobs:
         if: inputs.phase == 'immutable-bootstrap'
         env:
           EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          RELEASE_COMMIT: ${{ steps.release_source.outputs.commit }}
         run: |
           rule_name="snapshot-$(printf '%s' "$EXPECTED_REVISION" | cut -c1-16)"
           {
@@ -395,7 +424,7 @@ jobs:
             echo "- Rule: \`$rule_name\`"
             echo "- Prefix: \`snapshots/$EXPECTED_REVISION/\`"
             echo "- Condition: enabled, indefinite"
-            echo "- Release commit: \`$GITHUB_SHA\`"
+            echo "- Release commit: \`$RELEASE_COMMIT\`"
             echo
             echo '```sh'
             echo "tools/manage-r2-release-lock.sh $EXPECTED_REVISION --release-root <release-root> --apply"
@@ -414,6 +443,7 @@ jobs:
         if: inputs.phase == 'publish'
         env:
           EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          RELEASE_COMMIT: ${{ steps.release_source.outputs.commit }}
           RELEASE_VERSION: ${{ inputs.version }}
           RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
         run: |
@@ -427,5 +457,5 @@ jobs:
             echo "- Lock readback SHA-256: \`$RETENTION_EVIDENCE_SHA256\`"
             echo "- Lock evidence: GitHub release \`v$RELEASE_VERSION\` asset"
             echo "  \`neuralstock-r2-release-lock-$EXPECTED_REVISION.json\`"
-            echo "- Release commit: \`$GITHUB_SHA\`"
+            echo "- Release commit: \`$RELEASE_COMMIT\`"
           } >>"$GITHUB_STEP_SUMMARY"
