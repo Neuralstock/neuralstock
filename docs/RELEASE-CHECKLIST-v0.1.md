@@ -125,7 +125,8 @@ owner-operated verification, not a second-person review.
       attested archive interactively with 2FA, configures trusted publishing,
       and removes any temporary token without putting it in GitHub.
 - [x] `Publish packages` is dispatched from the same tag and candidate run;
-      each selected protected environment is approved separately.
+      each selected protected environment runs under the recorded reviewer or
+      first-party solo-bootstrap mode.
 - [x] Clean temporary projects install and smoke-test exact versions
       `@neuralstock/client@<version>` and `neuralstock==<version>`.
 
@@ -280,5 +281,7 @@ Post-deployment health run `30731015545` passed on protected controller
 `181e0d661e0e9f6d662e1bc18ecdc37dc38d9cff` at
 `2026-08-02T03:40:23Z`, verifying canonical revision
 `744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`
-and all fifteen assets. `docs/releases/v0.1.0.md` contains the complete linked
-evidence record.
+with the complete fifteen-entry registry and sitemap plus representative
+first-entry route/artifact/range delivery. The separately recorded read-only
+audit covered all 227 immutable plan items and all fifteen GLB ranges.
+`docs/releases/v0.1.0.md` contains the complete linked evidence record.

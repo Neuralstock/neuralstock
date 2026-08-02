@@ -107,7 +107,7 @@ At `2026-08-02T03:33Z`, Joseph Nordqvist independently inspected Cloudflare's
 `neuralstock-public` **Settings > Bucket Lock Rules** view in an authenticated
 browser session. The dashboard visibly showed all eight rules above as enabled
 with an **Indefinite** retention condition. This UI readback supplements the
-credential-free apply and check-only JSON evidence; it does not replace the
+credential-sanitized apply and check-only JSON evidence; it does not replace the
 byte, prefix, or plan-hash verification in that evidence. “Independently” here
 means a separate UI surface from the API readback; it is not a second-person
 review.
