@@ -167,6 +167,17 @@ test("loads a published GLB and survives viewer interactions", async ({ page }, 
   );
   await selectedCard.scrollIntoViewIfNeeded();
   await expect(selectedCard).toHaveAttribute("data-manifest-state", "loaded");
+
+  const cards = page.locator(".asset-card");
+  const cardCount = await cards.count();
+  for (let index = 0; index < cardCount; index += 1) {
+    await cards.nth(index).scrollIntoViewIfNeeded();
+  }
+  await expect(
+    page.locator('.asset-card-preview img[data-verified="true"]'),
+  ).toHaveCount(cardCount);
+  await expect(page.locator(".asset-card-preview.preview-unavailable")).toHaveCount(0);
+
   await selectedCard.locator(".asset-download-panel summary").click();
   const expectedFileStem = identity.replace("@", "-");
   const glbDownload = selectedCard.getByRole("button", {

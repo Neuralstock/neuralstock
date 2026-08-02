@@ -9,6 +9,7 @@ import {
   type RegistryManifest,
 } from "@neuralstock/client";
 import "./styles.css";
+import { fetchPublicAsset } from "./asset-fetch.js";
 import { collectViewerElements, RoomZeroViewer } from "./viewer.js";
 
 const SITE_TITLE = "NeuralStock · Open assets for machine-built worlds";
@@ -689,7 +690,10 @@ async function populateCatalog(url: string, select: HTMLSelectElement): Promise<
   if (!grid || !status) return;
 
   try {
-    catalogRegistry = await loadRegistry(url, { integrity: "strict" });
+    catalogRegistry = await loadRegistry(url, {
+      fetch: fetchPublicAsset,
+      integrity: "strict",
+    });
     if (categorySelect) {
       const categories = [
         ...new Set(catalogRegistry.entries.flatMap((entry) => entry.semantics.categories)),
