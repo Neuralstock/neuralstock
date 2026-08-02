@@ -54,9 +54,16 @@ fi
 
 main_ref=refs/neuralstock-verification/main
 tag_ref=refs/neuralstock-verification/tag
-git fetch --quiet --no-tags --force origin \
-  "refs/heads/main:$main_ref" \
-  "refs/tags/$tag:$tag_ref" || {
+shallow_file=$(git rev-parse --git-path shallow)
+if [ -f "$shallow_file" ]; then
+  git fetch --quiet --no-tags --unshallow --force origin \
+    "refs/heads/main:$main_ref" \
+    "refs/tags/$tag:$tag_ref"
+else
+  git fetch --quiet --no-tags --force origin \
+    "refs/heads/main:$main_ref" \
+    "refs/tags/$tag:$tag_ref"
+fi || {
   >&2 echo "origin must contain branch main and release tag $tag"
   exit 65
 }
