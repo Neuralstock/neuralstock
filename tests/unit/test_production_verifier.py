@@ -19,6 +19,7 @@ ALIAS_CACHE = "public, max-age=60, must-revalidate"
 EXPOSED_HEADERS = (
     "Accept-Ranges, Cache-Control, Content-Length, Content-Range, Content-Type, ETag, Last-Modified"
 )
+REDIRECT_PROBE = "/asset/neuralstock-redirect-probe/0.0.0?neuralstock_redirect_probe=1"
 
 
 def _pretty_json(value: Any) -> bytes:
@@ -164,8 +165,14 @@ class _Handler(BaseHTTPRequestHandler):
         kind = self.server.kind  # type: ignore[attr-defined]
         path = urllib.parse.urlsplit(self.path).path
         if kind == "www":
+            if self.path != REDIRECT_PROBE:
+                self._send(404, b"missing", "text/plain")
+                return
             self.send_response(301)
-            self.send_header("Location", f"{self.server.site_origin}{self.path}")  # type: ignore[attr-defined]
+            self.send_header(
+                "Location",
+                f"{self.server.site_origin}{REDIRECT_PROBE}",  # type: ignore[attr-defined]
+            )
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
