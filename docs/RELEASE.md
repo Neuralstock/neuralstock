@@ -1,12 +1,12 @@
 # Room Zero release runbook
 
-> **Canonical package v0.1.0 migration:** the deployed Room Zero pilot uses
-> immutable historical v0.1 schema/profile bytes. Before canonical promotion,
-> all contract-bearing inputs migrate to the fresh
-> `https://schemas.neuralstock.ai/v0.2/` namespace, the complete release is
-> rebuilt, and a new registry revision is published as asset version 1.0.1. The
-> immutable 1.0.0 preview and every locked v0.1 contract remain historical.
-> `docs/NAMESPACE.md` is authoritative.
+> **Published package v0.1.0:** the canonical Room Zero graph was rebuilt as
+> asset version 1.0.1 under the fresh
+> `https://schemas.neuralstock.ai/v0.2/` namespace and published as registry
+> revision
+> `744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`.
+> The immutable 1.0.0 preview revision and every locked v0.1 contract remain
+> separate historical evidence. `docs/NAMESPACE.md` is authoritative.
 
 Room Zero v0.1 is released from accepted, immutable `.blend` sources—not from
 a fresh procedural-generator serialization. Blender can serialize an
@@ -19,7 +19,7 @@ The release helper performs the complete local transaction:
 tools/release-room-zero.sh
 ```
 
-The default accepted source root is the versioned `assets/room-zero` pilot
+The default accepted source root is the versioned `assets/room-zero`
 collection. An alternate first argument may point to any root containing
 `<asset-id>/source.blend` for every catalog entry. Optional second and third
 arguments select the work and release targets. Output targets must be absent or
@@ -139,9 +139,10 @@ never accepts a published mutable release. Phase B retrieves the now-
 immutable evidence asset, verifies its supplied SHA-256 and release attestation,
 parses all eight historical/target rules, and binds its revision and release-
 plan hash to the candidate before any write. A Phase A green status or a hex-
-looking caller input is not retention evidence. The release remains incomplete
+looking caller input is not retention evidence. A release remains incomplete
 until immutable GitHub finalization, Phase B, both JSON records, the release
-asset, and independent dashboard confirmation are recorded.
+asset, an independent authenticated R2 lock readback, and dashboard confirmation
+are recorded.
 
 ## Publish package distributions
 
@@ -155,9 +156,10 @@ identity, or version before the protected `npm` and `pypi` jobs can run.
 
 The two publisher jobs use GitHub OIDC only. Configure their exact identities
 as documented in `docs/GITHUB-GOVERNANCE.md`; never create a GitHub npm or PyPI
-token. PyPI can use a pending publisher for its first upload. If npm requires
-the scoped package to exist first, Joseph Nordqvist performs the single
-interactive 2FA bootstrap from the exact already-attested archive:
+token. PyPI can use a pending publisher for its first upload. npm required the
+scoped package to exist before trusted publishing could be enabled, so v0.1.0
+used the single interactive 2FA bootstrap from the exact already-attested
+archive:
 
 ```sh
 npm publish ./dist/package-candidate/npm/neuralstock-client-0.1.0.tgz \
@@ -165,10 +167,13 @@ npm publish ./dist/package-candidate/npm/neuralstock-client-0.1.0.tgz \
   --provenance=false
 ```
 
-Record that archive's SHA-256 and the successful publication, immediately
-configure npm trusted publishing for `Neuralstock/neuralstock`, workflow
-`publish-packages.yml`, environment `npm`, require 2FA, and disallow granular
-access tokens. All later versions go through the protected OIDC workflow.
+That public archive has SHA-256
+`c18fcf3f0b7f22d15a888d9c5cb0a42bfb350fa0f8b0592d33fb1984b5409ace`.
+npm trusted publishing is now configured for `Neuralstock/neuralstock`,
+workflow `publish-packages.yml`, environment `npm`; package publication and the
+npm organization require 2FA. All later versions go through the protected OIDC
+workflow. PyPI project `neuralstock` was created and published through its
+pending trusted publisher with no API token.
 
 Record the complete release evidence in
 [`docs/releases/v0.1.0.md`](releases/v0.1.0.md). Package version `0.1.0`, schema
@@ -215,35 +220,81 @@ never falls back to ambient AWS credentials.
 ## Current Cloudflare publication
 
 Room Zero revision
-`a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523` is
-published in the `neuralstock-public` bucket. Its active public origin is
+`744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`
+is canonical in the `neuralstock-public` bucket and contains all 15 Room Zero
+assets at version 1.0.1. Its active public origin is
 `https://assets.neuralstock.ai`; the `r2.dev` development URL is disabled.
 Public `GET` and `HEAD` CORS, exposed range headers, and R2 byte-range responses
 allow browsers and download clients to fetch large artifacts directly.
+
+All 227 immutable v0.1.0 plan items were created or verified before either
+alias changed. The `v0.2/`, `profiles/v0.2/`, and exact
+`snapshots/744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391/`
+prefixes are indefinitely locked. The five historical lock rules, the complete
+asset 1.0.0 graph, and historical registry revision
+`a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523`
+remain unchanged.
 
 The object writers assign one-year immutable caching to content-addressed
 objects, schemas, profiles, their license companions, asset-version manifests,
 and revision snapshots.
 They assign a 60-second revalidating policy to `registry.json` and
-`snapshots/latest.json`. A 2026-08-01 live check confirmed immutable objects
-changed from Cloudflare `MISS` to `HIT`. The zone Browser Cache TTL was then set
-to **Respect Existing Headers**, and both aliases were verified with the exact
-60-second policy while the schema host retained one-year immutable caching; see
-`docs/OPERATIONS.md`.
+`snapshots/latest.json`. The zone Browser Cache TTL is **Respect Existing
+Headers**. Live v0.1.0 verification confirmed both aliases have the exact
+60-second policy while the schema host and immutable objects retain one-year
+immutable caching; see `docs/OPERATIONS.md`.
 
 The Cloudflare Pages project `neuralstock` has preview and production
 deployments. Its `neuralstock.ai` and `www.neuralstock.ai` custom domains are
 active. A zone-level Single Redirect, managed under stable ref
-`neuralstock_www_to_apex`, must return 301 from `www` to the apex while
+`neuralstock_www_to_apex`, returns 301 from `www` to the apex while
 preserving path and query; domain-level redirects are not supported in the
 Pages `_redirects` file. The deployed viewer offers a GLB, accepted `.blend`
 source, and version manifest download for each asset. All three links resolve
 directly to the R2 origin rather than streaming binaries through Pages or a
 Worker.
 
-## v0.1 release evidence
+## v0.1.0 release evidence
 
-The 2026-08-01 pilot release-readiness run produced:
+The canonical release produced:
+
+- signed tag `v0.1.0` at commit
+  `6a0d8bb5696a24792c606128b016d2fcf3fad6ff` and an exact six-asset immutable
+  GitHub Release;
+- 15 CC0-declared Room Zero assets at version 1.0.1, all built twice from the
+  accepted source bytes with byte-identical results;
+- registry revision
+  `744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`,
+  225 traversed artifacts, and 9,694,572 verified release bytes;
+- a 229-item R2 plan with 227 immutable items and two aliases, SHA-256
+  `2355bb10f6f6efb8e330bc7e905f58404dc18afb1fe000066b41598e0a59fcd9`;
+- deterministic release archive SHA-256
+  `c005f6c59ff066641844580dd8813045da026b93e69688b0c409e22eadcd9187`
+  and `SHA256SUMS` SHA-256
+  `0f2f65b11f307885a86baa3d3a9a5430fc019241ecbe1043a1b13fe452e2a054`;
+- Blender worker manifest
+  `sha256:e458059a9a783f8e54ac746361494a1b64d892f66a9f797f498bd11351531298`
+  with config
+  `sha256:dbf4c5a833b81b63bbec7eb04121056ccc5242aaa5561e3ce7680117d9181eed`;
+- independently read-back indefinite locks for the v0.2 schemas, v0.2 profile,
+  and exact canonical revision snapshot, with check-only evidence SHA-256
+  `2f293a79dd5740109436ad032b89581741ec30282db6be9d814adbe796825d9f`;
+- successful protected
+  [Phase B run 30730929891](https://github.com/Neuralstock/neuralstock/actions/runs/30730929891)
+  and separate
+  [production-health run 30731015545](https://github.com/Neuralstock/neuralstock/actions/runs/30731015545)
+  on verified deployment controller
+  `181e0d661e0e9f6d662e1bc18ecdc37dc38d9cff`; and
+- public `neuralstock==0.1.0` and `@neuralstock/client@0.1.0` packages whose
+  exact distributions passed clean install and import checks.
+
+The authoritative workflow identities, artifact checksums, lock readbacks,
+publication chronology, and documented limitations are recorded in
+[`docs/releases/v0.1.0.md`](releases/v0.1.0.md).
+
+### Historical 1.0.0 preview evidence
+
+The separate 2026-08-01 infrastructure-readiness run produced:
 
 - 15 CC0-declared assets and 15 `latest` aliases;
 - seven bounded procedural assets;
@@ -282,6 +333,7 @@ corroborative; authenticated repository history remains the durable authority.
 Retain both records in authenticated history when publishing; tooling verifies
 evidence consistency but cannot independently establish legal authority.
 
-These evidence counts describe the pilot revision. The schema-domain migration
-changes contract and receipt hashes and therefore produces a new registry
-revision even if accepted Blender sources and runtime geometry remain unchanged.
+These last evidence counts describe only the historical 1.0.0 preview revision.
+The completed schema-domain migration changed contract and receipt hashes and
+therefore produced the distinct canonical revision above even though accepted
+Blender sources and runtime geometry remained unchanged.

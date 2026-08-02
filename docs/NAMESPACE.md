@@ -1,7 +1,10 @@
 # Namespace and schema-domain decision
 
-**Status:** Amended before the canonical package v0.1.0 release  
-**Date:** 2026-08-01
+**Status:** Implemented by the canonical package v0.1.0 release
+
+**Decision date:** 2026-08-01
+
+**Implementation verified:** 2026-08-02
 
 ## Decision
 
@@ -46,33 +49,39 @@ schema/profile namespace to v0.2; it never overwrites, redirects, relabels, or
 unlocks v0.1. No canonical v0.2 source, fixture, catalog record, generated
 artifact, package, or client may reference the historical v0.1 contract.
 
-## Migration gate
+## Migration implementation and gate
 
-The schema-domain change alters authored-document hashes, tool inventories,
+The schema-domain change altered authored-document hashes, tool inventories,
 build receipts, manifests, content-addressed object keys, and the registry
-revision even when the Blender source and GLB geometry are unchanged. Therefore:
+revision even though the accepted Blender source and GLB geometry were
+unchanged. The v0.1.0 migration completed all of these gates:
 
-1. update schemas, profiles, catalog documents, generators, fixtures, clients,
-   and packaged contract data together;
-2. rerun all schema, package, release, and real-runtime tests;
-3. rebuild Room Zero from the accepted source hashes;
-4. create a new release candidate and registry revision;
-5. Phase A publishes every immutable object, including v0.2 schemas, the
+1. schemas, profiles, catalog documents, generators, fixtures, clients, and
+   packaged contract data were updated together;
+2. all schema, package, release, and real-runtime tests were rerun;
+3. Room Zero was rebuilt from the accepted source hashes;
+4. a new release candidate and registry revision were created;
+5. Phase A published every immutable object, including v0.2 schemas, the
    profile, both adjacent MIT license companions, and the exact revision
-   snapshot, but does not update either alias or the site;
-6. byte-verify Phase A through the public origin and direct R2 reads, then add
-   and read back indefinite locks for `v0.2/`, `profiles/v0.2/`, and the exact
-   `snapshots/<revision>/` prefix;
-7. attach that exact readback to the candidate draft and finalize the exact
-   six-asset GitHub Release under repository release immutability; and
-8. Phase B verifies the immutable release and re-verifies the immutable graph
-   before updating aliases and the site.
+   snapshot, without updating either alias or the site;
+6. Phase A bytes were verified through the public origin and direct R2 reads,
+   then indefinite locks for `v0.2/`, `profiles/v0.2/`, and the exact
+   `snapshots/<revision>/` prefix were added and read back;
+7. that exact readback was attached to the candidate draft before the exact
+   six-asset GitHub Release was finalized under repository release
+   immutability; and
+8. Phase B verified the immutable release and immutable graph again before
+   updating aliases and the site.
 
 The previously deployed preview revision is retained as immutable historical
-bytes but must not remain the mutable canonical registry after this migration.
-Its versioned Room Zero `assets/*/1.0.0/manifest.json` keys are also retained
-unchanged. The owned-schema rebuild publishes those same accepted Blender
-inputs as asset version 1.0.1, so no immutable 1.0.0 manifest is overwritten.
+bytes and is no longer the mutable canonical registry. Its versioned Room Zero
+`assets/*/1.0.0/manifest.json` keys are also retained unchanged. The
+owned-schema rebuild published those same accepted Blender inputs as asset
+version 1.0.1, so no immutable 1.0.0 manifest was overwritten. The canonical
+revision is
+`744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`;
+the historical 1.0.0 revision remains
+`a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523`.
 The release and deploy workflows fail if an unowned draft or historical v0.1
 schema reference remains in canonical contract-bearing source trees.
 
@@ -107,8 +116,9 @@ The package-publication identity is fixed to repository
 `Neuralstock/neuralstock`, workflow `publish-packages.yml`, and the protected
 `npm` or `pypi` environment. The workflow publishes only a separately attested
 candidate from the same protected tag and uses OIDC rather than stored registry
-credentials. Package availability and initial namespace control remain release
-gates until the first publication is visible on each registry.
+credentials. Initial namespace control and package availability were verified
+by publishing `neuralstock==0.1.0` on PyPI and
+`@neuralstock/client@0.1.0` on npm, followed by clean consumer installs.
 
 ## Immutability
 
@@ -122,7 +132,10 @@ network availability.
 ## Worker image metadata
 
 The Blender OCI source and documentation labels use the canonical
-`Neuralstock/neuralstock` repository. The canonical v0.2 migration reproduces
-both image exports and the checked-in image lock after that metadata change;
-the release must not reuse the preview image digest or accept a cosmetic
-metadata edit without the normal reproducibility gate.
+`Neuralstock/neuralstock` repository. The canonical v0.2 migration reproduced
+both image exports and the checked-in image lock after that metadata change.
+The published worker manifest is
+`sha256:e458059a9a783f8e54ac746361494a1b64d892f66a9f797f498bd11351531298`
+with config
+`sha256:dbf4c5a833b81b63bbec7eb04121056ccc5242aaa5561e3ce7680117d9181eed`;
+the preview image digest was not reused.

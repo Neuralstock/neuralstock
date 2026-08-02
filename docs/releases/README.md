@@ -32,4 +32,13 @@ finalizer runs, immutable release, asset, and independent Cloudflare dashboard
 readback. This gate stays manual because the available bucket-configuration
 credential is account-wide and is intentionally not stored in GitHub.
 
+For `v0.1.0`, the independent dashboard readback occurred at
+`2026-08-02T03:33Z`: the authenticated `neuralstock-public` Bucket Lock Rules
+view showed all eight historical and release-target rules enabled with an
+**Indefinite** retention condition. The release record must pair that visual
+confirmation with the deterministic Wrangler/API apply and check-only JSON
+hashes rather than treating a screenshot or UI observation as byte evidence.
+This owner-operated readback is independent of the API surface, not independent
+human review.
+
 The first record is [`v0.1.0.md`](v0.1.0.md).

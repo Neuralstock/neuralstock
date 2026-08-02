@@ -9,8 +9,11 @@
 | Asset origin | `https://assets.neuralstock.ai` |
 | Schema origin | `https://schemas.neuralstock.ai` |
 | Cloudflare Pages project | `neuralstock` |
+| Current Pages production deployment | `de6d320c-7d34-42f9-a344-87daf5b36df7` from protected commit `181e0d661e0e9f6d662e1bc18ecdc37dc38d9cff` |
 | R2 bucket | `neuralstock-public` |
+| Canonical Room Zero 1.0.1 registry revision | `744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391` |
 | Historical Room Zero 1.0.0 preview revision | `a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523` |
+| Last protected publish / health runs | `30730929891` / `30731015545`, both successful on `2026-08-02` |
 
 Both origins are custom domains on the same R2 bucket. `r2.dev` remains
 disabled. Normal downloads and schema reads go directly to R2 and do not pass
@@ -87,7 +90,7 @@ replace the historical value in evidence intended to describe the preview.
 
 ## R2 immutability policy
 
-The production bucket has indefinite object-lock rules for:
+The production bucket has eight indefinite object-lock rules:
 
 | Rule | Prefix |
 | --- | --- |
@@ -96,6 +99,18 @@ The production bucket has indefinite object-lock rules for:
 | `schema-v0.1` | `v0.1/` |
 | `profile-v0.1` | `profiles/v0.1/` |
 | `room-zero-snapshot` | `snapshots/a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523/` |
+| `schema-v0.2` | `v0.2/` |
+| `profile-v0.2` | `profiles/v0.2/` |
+| `snapshot-744accaa3f9efcd0` | `snapshots/744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391/` |
+
+At `2026-08-02T03:33Z`, Joseph Nordqvist independently inspected Cloudflare's
+`neuralstock-public` **Settings > Bucket Lock Rules** view in an authenticated
+browser session. The dashboard visibly showed all eight rules above as enabled
+with an **Indefinite** retention condition. This UI readback supplements the
+credential-sanitized apply and check-only JSON evidence; it does not replace the
+byte, prefix, or plan-hash verification in that evidence. “Independently” here
+means a separate UI surface from the API readback; it is not a second-person
+review.
 
 `registry.json` and `snapshots/latest.json` intentionally remain mutable aliases.
 They are updated last and must always reference a complete immutable graph.
@@ -116,8 +131,9 @@ values against regression.
 
 The existing `schema-v0.1`, `profile-v0.1`, and Room Zero snapshot rules are
 historical locks. Never rename, weaken, or reinterpret them as v0.2 protection.
-The first v0.2 publication uses a two-phase R2 bootstrap with an immutable
-GitHub Release boundary between the phases:
+The first v0.2 publication used the following two-phase R2 bootstrap with an
+immutable GitHub Release boundary between the phases; future fresh contract
+namespaces must preserve the same ordering:
 
 1. dispatch `Production deploy` with phase `immutable-bootstrap`; it accepts an
    all-absent or exact-byte v0.2 namespace, stages every immutable plan item and

@@ -1,7 +1,7 @@
 # Cloudflare production origin
 
-The initial NeuralStock rollout uses a dedicated R2 bucket and custom domain for the public,
-root-relative static registry:
+NeuralStock v0.1.0 uses a dedicated R2 bucket and custom domains for the
+public, root-relative static registry:
 
 - account resource: `neuralstock-public`
 - asset origin: `https://assets.neuralstock.ai`
@@ -13,13 +13,18 @@ root-relative static registry:
 
 ## Current launch state
 
-The `neuralstock-public` bucket is populated with Room Zero registry revision
-`a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523`.
-Both R2 custom domains are active, the `r2.dev` development URL is disabled,
-and the CORS policy permits public `GET` and `HEAD` access while exposing the
-headers needed for byte-range downloads. Versioned schema and profile prefixes
-are indefinite-lock, one-year-cache content; they are not a separate Pages
-project.
+The `neuralstock-public` bucket serves the canonical Room Zero registry
+revision
+`744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`,
+containing all 15 assets at version 1.0.1. Both R2 custom domains are active,
+the `r2.dev` development URL is disabled, and the CORS policy permits public
+`GET` and `HEAD` access while exposing the headers needed for byte-range
+downloads. The `v0.2/`, `profiles/v0.2/`, and exact
+`snapshots/744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391/`
+prefixes are protected by indefinite bucket-lock rules and one-year immutable
+caching. The five earlier lock rules and historical registry revision
+`a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523`
+remain unchanged.
 
 The Cloudflare Pages project `neuralstock` has both preview and production
 deployments. The `neuralstock.ai` and `www.neuralstock.ai` Pages custom domains
@@ -119,6 +124,17 @@ covering a mutable alias, reproduces the candidate plan, and directly verifies
 every immutable R2 item. It creates and reads back only `schema-v0.2` on
 `v0.2/`, `profile-v0.2` on `profiles/v0.2/`, and the exact revision snapshot
 rule. Retain both JSON outputs, upload the check-only file once under its
-deterministic name to the signed-tag GitHub Release, and confirm all three rules
-in the dashboard. Phase B retrieves and binds that evidence before aliases or
+deterministic name to the signed-tag GitHub Release, independently read all
+three rules back through the authenticated Cloudflare API, and confirm them in
+the dashboard. Phase B retrieves and binds that evidence before aliases or
 Pages can change.
+
+For v0.1.0, Phase A created or verified all 227 immutable objects without
+changing aliases. The authenticated lock operation then created exactly
+`schema-v0.2`, `profile-v0.2`, and
+`snapshot-744accaa3f9efcd0`; its independent check-only evidence has SHA-256
+`2f293a79dd5740109436ad032b89581741ec30282db6be9d814adbe796825d9f`
+and is an immutable asset of the `v0.1.0` GitHub Release. The canonical aliases
+were promoted only after that release became immutable. A separate authenticated
+dashboard inspection at `2026-08-02T03:33Z` visibly confirmed all eight rules
+enabled with indefinite retention.
