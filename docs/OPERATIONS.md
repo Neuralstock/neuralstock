@@ -229,16 +229,28 @@ The scheduled `Production health` workflow checks:
 - the exact `www` 301 preserves path and query at the apex;
 - the website shell, checked-in machine-discovery document, sitemap, and a
   registry-derived stable asset route are live with the intended content types;
+- the live website CSP exactly matches the checked-in Pages policy, including
+  the `blob:` connection source required by the verified-byte Three.js loader;
 - `registry.json`, `snapshots/latest.json`, and
   `snapshots/<revision>/registry.json` are byte-identical;
 - the registry's semantic revision recomputes to its declared SHA-256;
 - the first version manifest, GLB, and Blender source match their full SHA-256
   and byte descriptors;
 - the GLB serves an exact HTTP 206 byte range matching the full verified file;
-- browser CORS and exposed download headers are present; and
+- every declared preview for every current entry matches its hash and byte
+  descriptor and carries the required cache and browser CORS headers;
+- browser CORS and exposed download headers are present on the representative
+  manifest, GLB, and Blender source; and
 - aliases and discovery expose their short revalidating policies while
   immutable snapshots, manifests, objects, schemas, and profiles expose the
   one-year immutable policy.
+
+Preview verification fails closed if the registry has more than
+`NEURALSTOCK_VERIFY_PREVIEW_LIMIT` entries; the default is 100 and therefore
+covers Room Zero plus the first planned expansion. Raise the limit deliberately
+in the protected deploy and health workflows before crossing that boundary,
+after confirming the workflow timeout and egress remain appropriate. The limit
+never permits sampling or a silent partial pass.
 
 The full GLB response must advertise `Accept-Ranges: bytes`. The partial
 response is proven by its 206 status, exact `Content-Range`, byte count, and
@@ -313,6 +325,25 @@ sequence.
 Stop new Pages deployments. Redeploy the last known-good Pages artifact or use
 the Pages deployment rollback control. Do not change R2 aliases when the asset
 graph is healthy.
+
+If previews load but the Three.js viewer reports a blocked `blob:` connection,
+compare the live `Content-Security-Policy` with
+`examples/room-zero/public/_headers`. The verified-byte loader requires
+`connect-src blob:`; preview images separately require `img-src blob:`. The
+Cloudflare Insights beacon being blocked by `script-src 'self'` affects
+telemetry only and is not evidence of an asset failure.
+
+### Asset CORS failure with valid immutable bytes
+
+First fetch each reported object with `Origin: https://neuralstock.ai` and
+verify its SHA-256, response CORS headers, content type, and cache policy. Read
+back `cloudflare/r2-cors.json` with Wrangler. If the control-plane rule is exact
+but a custom-domain response is stale, purge only the
+`assets.neuralstock.ai` and `schemas.neuralstock.ai` hostnames, rerun
+`tools/verify-production.sh`, and hard-refresh the affected browser after the
+origin passes. Cloudflare documents that cached R2 custom-domain objects can
+retain headers from before a CORS change. Do not mutate content-addressed
+objects, manifests, snapshots, or aliases to repair response-header cache state.
 
 ### Bad mutable registry alias
 

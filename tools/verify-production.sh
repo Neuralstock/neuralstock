@@ -21,6 +21,10 @@ immutable_cache_control=public,max-age=31536000,immutable
 discovery_cache_control=public,max-age=300,stale-while-revalidate=86400
 verification_attempts=${NEURALSTOCK_VERIFY_ATTEMPTS:-1}
 verification_delay=${NEURALSTOCK_VERIFY_DELAY_SECONDS:-5}
+# Every registry entry, and every preview declared by its manifest, is verified.
+# This ceiling bounds network work for an unexpectedly large registry; exceeding
+# it fails closed instead of sampling. Raise it deliberately as the catalog grows.
+preview_entry_limit=${NEURALSTOCK_VERIFY_PREVIEW_LIMIT:-100}
 
 if [ -n "$expected_revision" ] && ! printf '%s\n' "$expected_revision" \
   | grep -Eq '^[0-9a-f]{64}$'; then
@@ -32,6 +36,10 @@ if ! printf '%s\n' "$verification_attempts" | grep -Eq '^[1-9][0-9]*$'; then
 fi
 if ! printf '%s\n' "$verification_delay" | grep -Eq '^[0-9]+$'; then
   >&2 echo "NEURALSTOCK_VERIFY_DELAY_SECONDS must be a non-negative integer"
+  exit 64
+fi
+if ! printf '%s\n' "$preview_entry_limit" | grep -Eq '^[1-9][0-9]*$'; then
+  >&2 echo "NEURALSTOCK_VERIFY_PREVIEW_LIMIT must be a positive integer"
   exit 64
 fi
 
@@ -47,7 +55,9 @@ project_root=$(CDPATH= cd -- "$script_directory/.." && pwd -P)
 discovery_source="$project_root/discovery/neuralstock.json"
 license_source="$project_root/LICENSE"
 sitemap_source="$project_root/examples/room-zero/public/sitemap.xml"
-[ -f "$discovery_source" ] && [ -f "$license_source" ] && [ -f "$sitemap_source" ] || {
+headers_source="$project_root/examples/room-zero/public/_headers"
+[ -f "$discovery_source" ] && [ -f "$license_source" ] \
+  && [ -f "$sitemap_source" ] && [ -f "$headers_source" ] || {
   >&2 echo "production verification must run from a complete NeuralStock checkout"
   exit 66
 }
@@ -250,6 +260,19 @@ fetch \
   "$temporary_root/site.headers" \
   "$temporary_root/site.html"
 require_content_type text/html "$temporary_root/site.headers" "site root"
+expected_content_security_policy=$(awk '
+  tolower($1) == "content-security-policy:" {
+    $1 = ""
+    sub(/^[[:space:]]+/, "")
+    value = tolower($0)
+  }
+  END { print value }
+' "$headers_source" | tr -d '\r ')
+[ -n "$expected_content_security_policy" ] || {
+  fail "checked-in Pages headers do not define a content-security-policy"
+}
+require_header content-security-policy "$expected_content_security_policy" \
+  "$temporary_root/site.headers" "site root"
 grep --fixed-strings '<title>NeuralStock' "$temporary_root/site.html" >/dev/null || {
   fail "site root does not contain the NeuralStock application shell"
 }
@@ -454,6 +477,99 @@ jq -e --slurpfile registry "$temporary_root/registry.json" \
   fail "version manifest identity differs from its registry entry"
 }
 
+[ "$entries" -le "$preview_entry_limit" ] || {
+  fail "registry has $entries entries, exceeding NEURALSTOCK_VERIFY_PREVIEW_LIMIT=$preview_entry_limit; raise the limit to verify every preview"
+}
+
+# The viewer fetches the first preview from every manifest, while the contract
+# permits multiple previews. Verify all declared previews for every current
+# registry entry so a single stale R2 CORS rule or malformed descriptor cannot
+# leave an individual collection card broken without failing production health.
+entry_index=0
+while [ "$entry_index" -lt "$entries" ]; do
+  entry_number=$((entry_index + 1))
+  entry_id=$(jq -er --argjson index "$entry_index" \
+    '.entries[$index].asset.id' "$temporary_root/registry.json")
+  entry_version=$(jq -er --argjson index "$entry_index" \
+    '.entries[$index].asset.version' "$temporary_root/registry.json")
+  entry_manifest_uri=$(jq -er --argjson index "$entry_index" \
+    '.entries[$index].manifest.uri' "$temporary_root/registry.json")
+  entry_manifest_sha=$(jq -er --argjson index "$entry_index" \
+    '.entries[$index].manifest.sha256' "$temporary_root/registry.json")
+  entry_manifest_bytes=$(jq -er --argjson index "$entry_index" \
+    '.entries[$index].manifest.bytes' "$temporary_root/registry.json")
+  entry_label="$entry_id@$entry_version"
+  entry_manifest_label="version manifest for $entry_label"
+  entry_manifest_file="$temporary_root/manifest-$entry_number.json"
+  entry_manifest_headers="$temporary_root/manifest-$entry_number.headers"
+
+  require_safe_uri "$entry_manifest_uri" "$entry_manifest_label"
+  if [ "$entry_index" -eq 0 ]; then
+    entry_manifest_file="$temporary_root/manifest.json"
+    entry_manifest_headers="$temporary_root/manifest.headers"
+  else
+    fetch \
+      "$asset_origin$entry_manifest_uri" \
+      "$entry_manifest_headers" \
+      "$entry_manifest_file"
+    verify_descriptor \
+      "$entry_manifest_file" \
+      "$entry_manifest_sha" \
+      "$entry_manifest_bytes" \
+      "$entry_manifest_label"
+    require_content_type application/json \
+      "$entry_manifest_headers" "$entry_manifest_label"
+    require_header cache-control "$immutable_cache_control" \
+      "$entry_manifest_headers" "$entry_manifest_label"
+    require_cors "$entry_manifest_headers" "$entry_manifest_label"
+  fi
+
+  jq -e \
+    --arg id "$entry_id" \
+    --arg version "$entry_version" \
+    '.id == $id and .version == $version' \
+    "$entry_manifest_file" >/dev/null || {
+      fail "$entry_manifest_label identity differs from its registry entry"
+    }
+
+  preview_count=$(jq -er \
+    '.artifacts.previews | length | select(. > 0)' \
+    "$entry_manifest_file")
+  preview_index=0
+  while [ "$preview_index" -lt "$preview_count" ]; do
+    preview_number=$((preview_index + 1))
+    preview_uri=$(jq -er --argjson index "$preview_index" \
+      '.artifacts.previews[$index].uri' "$entry_manifest_file")
+    preview_sha=$(jq -er --argjson index "$preview_index" \
+      '.artifacts.previews[$index].sha256' "$entry_manifest_file")
+    preview_bytes=$(jq -er --argjson index "$preview_index" \
+      '.artifacts.previews[$index].bytes' "$entry_manifest_file")
+    preview_media_type=$(jq -er --argjson index "$preview_index" \
+      '.artifacts.previews[$index].media_type' "$entry_manifest_file")
+    preview_label="preview artifact $preview_number for $entry_label"
+    preview_file="$temporary_root/preview-$entry_number-$preview_number.bin"
+    preview_headers="$temporary_root/preview-$entry_number-$preview_number.headers"
+
+    require_safe_uri "$preview_uri" "$preview_label"
+    fetch "$asset_origin$preview_uri" "$preview_headers" "$preview_file"
+    verify_descriptor \
+      "$preview_file" "$preview_sha" "$preview_bytes" "$preview_label"
+    require_content_type "$preview_media_type" "$preview_headers" \
+      "$preview_label"
+    require_header cache-control "$immutable_cache_control" \
+      "$preview_headers" "$preview_label"
+    require_cors "$preview_headers" "$preview_label"
+    for exposed_header in cache-control content-length content-type; do
+      require_exposed_header "$exposed_header" "$preview_headers" \
+        "$preview_label"
+    done
+
+    preview_index=$((preview_index + 1))
+  done
+
+  entry_index=$((entry_index + 1))
+done
+
 for role in runtime source; do
   uri=$(jq -er --arg role "$role" '.artifacts[$role].uri' \
     "$temporary_root/manifest.json")
@@ -604,7 +720,7 @@ if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
     echo "- Machine discovery, sitemap, and stable asset route: verified"
     echo "- Mutable aliases and immutable revision snapshot: byte-identical"
     echo "- Registry semantic revision: verified"
-    echo "- Manifest, GLB, Blender source, CORS, cache, and byte ranges: verified"
+    echo "- Every declared preview, plus first manifest/GLB/Blender source, CORS, cache, and byte ranges: verified"
     echo "- Canonical v0.2 schema/profile origin and MIT license companions: verified"
   } >>"$GITHUB_STEP_SUMMARY"
 fi
