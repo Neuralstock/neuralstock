@@ -259,7 +259,15 @@ credential usage, and confirm a second operator can execute the runbook.
 
 ## Production deployment
 
-1. Complete `docs/RELEASE-CHECKLIST-v0.1.md`.
+The procedure below records the existing Room Zero v0.1.0 and v0.2 contract
+bootstrap. `docs/RELEASE-CHECKLIST-v0.1.md` is historical and must not be reused
+as the generic checklist for a new founder asset. Before the first non-Room-Zero
+publication, protected `main` must contain a generic founder-lane checklist and
+incremental per-asset or bounded-batch release path.
+
+1. Complete the release checklist applicable to the exact release scope. For
+   the historical Room Zero release, that was
+   `docs/RELEASE-CHECKLIST-v0.1.md`.
 2. Run `Release candidate` on the intended protected tag. It creates an
    unpublished draft with exactly the five attested candidate assets.
 3. Record its workflow run ID, release version, source commit, registry revision,
@@ -267,9 +275,10 @@ credential usage, and confirm a second operator can execute the runbook.
 4. Start `Production deploy` phase `immutable-bootstrap` on that exact commit
    and enter the recorded run ID, version, and revision. Leave the retention
    evidence SHA empty.
-5. In reviewer mode, a different operator approves the `production`
-   environment. During the first-party solo bootstrap, record the governance
-   exception and do not characterize the owner-only action as independent.
+5. Apply the protected approval control for the recorded lane. An external
+   asset requires a different operator; an eligible founder asset uses the
+   owner-operated protected path. Record the actual mode and never characterize
+   owner-only action as independent.
 6. Phase A verifies the candidate, reproduces its R2 plan, stages every
    immutable object with no alias or Pages update, confirms alias bytes did not
    change, and verifies all twelve public v0.2 contract files after cache
@@ -281,8 +290,10 @@ credential usage, and confirm a second operator can execute the runbook.
    evidence SHA-256. Record its exact asset/digest checks, build attestations,
    R2 evidence verification, `immutable: true` readback, and release attestation.
 9. Start phase `publish` on the same commit and candidate with the exact SHA-256
-   of the now-immutable evidence. A protected-environment reviewer checks the
-   deterministic asset before approval.
+   of the now-immutable evidence. Apply the protected review control for the
+   recorded lane: an independent protected-environment reviewer for external
+   assets, or founder attestation plus all lane-aware checks for an eligible
+   founder asset.
 10. Phase B verifies the immutable release and asset, hashes, parses, and
     candidate-binds the evidence before any write; then it re-verifies immutable
     content, publishes both aliases, optionally deploys Pages, and runs the
@@ -321,9 +332,14 @@ hosting and discovery state, not the legal meaning of an otherwise valid CC0
 dedication.
 
 The current registry schema and client understand withdrawals, but the
-publisher does not yet generate them. Until that implementation is complete,
-an emergency response is a manual, two-person operation and public external
-intake remains closed.
+publisher does not yet generate them. Until automation is complete, Joseph may
+perform an emergency withdrawal as a solo manual operation for immediate
+containment. He must preserve the affected hashes, remove the version from
+discovery, block hosted delivery when required, publish a non-sensitive
+tombstone, and append an immutable incident record. Independent follow-up is
+recorded when a qualified responder exists; its absence never delays urgent
+containment. Public external intake remains closed until the external lane's
+response controls are operational.
 
 ### Credential exposure
 

@@ -78,6 +78,15 @@ as [`neuralstock==0.1.0`](https://pypi.org/project/neuralstock/0.1.0/) and the
 JavaScript client as
 [`@neuralstock/client@0.1.0`](https://www.npmjs.com/package/@neuralstock/client/v/0.1.0).
 
+Prospective first-party work operates under the openly unilateral
+[founder governance reset and continuing direct-publication lane](https://github.com/Neuralstock/neuralstock/blob/main/docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md).
+Joseph Nordqvist / `@bighippoman` is the accountable controller, CC0 dedicator,
+self-assessor, and publisher for qualifying founder-controlled work;
+independent human approval is `false`. The lane has no model-count or calendar
+limit. It does not open external intake or waive any publication gate, and no
+new non-Room-Zero asset may publish until the lane's machine-readable
+prerequisites are enforced.
+
 The canonical Room Zero graph is published to the `neuralstock-public`
 Cloudflare R2 bucket as asset version 1.0.1 and registry revision
 `744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`.
@@ -156,13 +165,16 @@ Blender serialization and lossless PNG encoding are documented in
 The end-to-end build, local publication, browser verification, and optional R2
 sync are documented in the
 [release runbook](https://github.com/Neuralstock/neuralstock/blob/main/docs/RELEASE.md).
+The scalable workshop-to-quarantine-to-public-registry process is documented in
+the
+[asset lifecycle](https://github.com/Neuralstock/neuralstock/blob/main/docs/ASSET-LIFECYCLE.md).
 
 Rollout and operations are governed by the
 [governance policy](https://github.com/Neuralstock/neuralstock/blob/main/GOVERNANCE.md),
 [rollout plan](https://github.com/Neuralstock/neuralstock/blob/main/docs/ROLLOUT.md),
 [GitHub runbook](https://github.com/Neuralstock/neuralstock/blob/main/docs/GITHUB-GOVERNANCE.md),
 and [operations runbook](https://github.com/Neuralstock/neuralstock/blob/main/docs/OPERATIONS.md).
-The exact v0.1 promotion gates are in the
+The historical, exact v0.1 promotion gates are in the
 [release checklist](https://github.com/Neuralstock/neuralstock/blob/main/docs/RELEASE-CHECKLIST-v0.1.md),
 with durable evidence recorded under
 [`docs/releases/`](https://github.com/Neuralstock/neuralstock/tree/main/docs/releases).

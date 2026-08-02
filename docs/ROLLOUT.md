@@ -58,14 +58,21 @@ Deliver:
 
 Bootstrap gate: all named protected checks have completed once on `main` and the
 protection script has been applied in the explicitly recorded solo-maintainer
-mode. This permits first-party Room Zero work but does not complete the external
-intake gate. Full R0 exit additionally requires reviewer mode, administrator
-bypass disabled for protected environments, and a dry-run pull request and
-deployment that cannot proceed without a non-initiating reviewer.
+mode. Room Zero used the original exception. The prospective founder reset
+establishes a continuing lane for qualifying founder-controlled work after its
+machine-readable contract and publication prerequisites are enforced; it does
+not complete or open the external intake gate. Full R0 exit additionally requires
+reviewer mode, administrator bypass disabled for protected environments, and a
+dry-run pull request and deployment that cannot proceed without a
+non-initiating reviewer for the external lane. Founder Direct Publication
+continues under its own disclosed, lane-aware controls.
 
 Status at v0.1.0: the bootstrap gate is complete. Full R0 remains open only at
 the deliberately deferred second-operator boundary; no release record claims
-independent human approval.
+independent human approval. The prospective founder reset and continuing lane
+are recorded in
+`docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md`; it does not alter that historical
+release record.
 
 ### R1 — Reproducible candidate and deployment lane
 
@@ -134,8 +141,8 @@ gate to increase the acceptance count.
 Exit gate:
 
 - at least five people complete the flow without private step-by-step help;
-- every publication has two distinct reviewers and zero unresolved rights
-  states;
+- every external-beta publication has two distinct reviewers and zero
+  unresolved rights states;
 - 100% of procedural assets pass their declared parameter test matrix;
 - median automated feedback is under 15 minutes;
 - median accepted submission publishes within three business days;

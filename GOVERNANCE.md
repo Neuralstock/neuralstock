@@ -9,6 +9,18 @@ change the CC0 status of accepted asset content or the MIT license for software.
 
 ## Roles
 
+### Founding project owner
+
+Joseph Nordqvist, GitHub account `@bighippoman`, is NeuralStock's founding
+project owner. This role may publish qualifying founder-controlled assets
+through the continuing direct-publication lane established by the signed reset
+in
+[`docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md`](docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md).
+The lane has no count or calendar limit. It may not claim independent review or
+bypass a failed policy, quality, security, reproducibility, or immutability
+gate. Separate solo-bootstrap authority governs policy changes while Joseph is
+the only qualified maintainer.
+
 ### Maintainer
 
 A maintainer may review software and documentation, triage reports, and merge
@@ -25,8 +37,9 @@ assertion. A reviewer with a personal or commercial conflict must recuse.
 ### Release operator
 
 A release operator may approve the protected `release`, `production`, `npm`,
-and `pypi` environments. The role can publish already-reviewed bytes but cannot
-waive a failed build, validation, provenance, or review gate.
+and `pypi` environments. The role can publish bytes already accepted under the
+applicable assessment mode but cannot waive a failed build, validation,
+provenance, or assessment gate.
 
 ### Security and withdrawal responder
 
@@ -39,11 +52,14 @@ One person may hold multiple roles during bootstrap. While Joseph Nordqvist is
 the only operator, GitHub is configured in the documented `--solo-maintainer`
 mode: checks, pull requests, ref restrictions, attestations, and immutable
 publication rules remain enforced, but no human approval is represented as
-independent. This exception permits only first-party Room Zero publication.
-External asset publication still requires two distinct people: one provenance
-reviewer and one maintainer or release operator. Public external intake must not
-open until a second qualified reviewer is appointed and GitHub has been moved
-to reviewer mode.
+independent. Room Zero used the original exception. Prospectively, the signed
+reset establishes a continuing `first-party-founder-controlled` lane after its
+machine-readable contract and all prerequisites are enforced. That origin-based
+lane is separate from GitHub's temporary solo-maintainer configuration and may
+continue if reviewer mode is later enabled. External asset publication still
+requires two distinct, conflict-free people: one provenance reviewer and one
+maintainer or release operator. Public external intake must not open until that
+lane and its lane-aware protected controls are implemented.
 
 ## Change classes
 
@@ -51,14 +67,40 @@ to reviewer mode.
 | --- | --- |
 | Documentation with no policy effect | One maintainer |
 | Software with no public-contract effect | One maintainer and required CI |
-| Schema, profile, registry, licensing, or governance | Two maintainers, compatibility note, required CI |
-| External asset or new asset version | Contributor attestation, provenance reviewer, second maintainer, all asset gates |
-| Release publication | Protected environment; independent approval in reviewer mode, or a recorded sole-maintainer exception for first-party bootstrap only |
-| Withdrawal or emergency block | One responder immediately; second-person review and notice afterward |
+| Schema, profile, registry-contract, licensing, or governance change | Two maintainers, compatibility note, and required CI; while solo-bootstrap decision authority applies, the founding project owner may act prospectively with explicit zero-independent-approval disclosure |
+| Founder asset-ID registration under the existing ledger contract | Signed founder registration, namespace and ledger-integrity checks; no second-person approval required or claimed |
+| Eligible `first-party-founder-controlled` asset version | Founder source/rights attestation, generated lane verdict, founder-self-assessment disclosure, and all asset gates; no second-person approval required or claimed |
+| External asset or other new asset version | Contributor attestation, conflict-free provenance reviewer, second maintainer, and all asset gates |
+| Release publication | Lane-aware protected environment or equivalently auditable control; independent approval for external assets, founder attestation and machine gates for an eligible founder candidate |
+| Withdrawal or emergency block | One responder immediately, with a public non-sensitive tombstone and immutable audit record; independent follow-up when a qualified responder exists |
 
-GitHub branch protection enforces the baseline approval and `CODEOWNERS` review.
-The two-person external-asset rule is a project policy because ordinary branch
-protection cannot express it by path.
+GitHub branch protection enforces pull requests, signatures, history, and the
+checks applicable to both modes. Before external intake opens, reviewer mode
+must enforce its human-review requirements without imposing them on an eligible
+founder asset, using a lane-aware required check or an equivalently auditable
+control. Ordinary branch protection cannot express the distinct review rules
+for both asset lanes by path and metadata alone.
+
+### Founder decision and publication process
+
+The prospective founder reset was unilaterally ratified by Joseph Nordqvist
+with zero independent approvals. It explicitly does not satisfy the pre-reset
+two-approval rule. While solo-bootstrap decision authority applies, every
+founder policy or public-contract decision must:
+
+1. identify the exact policy, contract, or release-process scope;
+2. use a signed commit and pull request against protected `main`;
+3. pass all protected checks applicable to that scope;
+4. record compatibility, versioning, and migration consequences;
+5. state `independent_human_review: false`; and
+6. remain prospective and preserve all immutable history.
+
+The continuing asset lane, including conforming ID registrations, is not
+limited by the end of solo-bootstrap decision authority. Every eligible founder
+asset requires prior ID registration, the machine-generated lane verdict, a
+per-version founder attestation, and the public disclosure defined by the
+reset. Until that enforcement exists, the reset authorizes implementation work
+but not publication of a new non-Room-Zero asset.
 
 ## Controlled contributor scope
 
@@ -86,7 +128,9 @@ semantics require:
 1. a written decision in `docs/` describing context, alternatives, and
    compatibility;
 2. a pull request linked to that decision;
-3. two approvals and passing protected checks; and
+3. two approvals and passing protected checks, except for an explicitly
+   disclosed prospective decision made while solo-bootstrap decision authority
+   applies; and
 4. a migration or versioning plan when published clients can be affected.
 
 Published schema and profile versions are immutable. A correction creates a new
@@ -111,6 +155,10 @@ archive, checksums, GitHub artifact attestation, registry revision, build
 receipt graph, and deployment workflow run. Credentials are scoped to the
 protected job that needs them and never enter pull-request validation.
 
-The runbooks in `docs/GITHUB-GOVERNANCE.md`, `docs/OPERATIONS.md`, and
-`docs/RELEASE-CHECKLIST-v0.1.md` are normative operational companions to this
-policy.
+The current operational runbooks in `docs/GITHUB-GOVERNANCE.md` and
+`docs/OPERATIONS.md` are normative companions to this policy.
+`docs/RELEASE-CHECKLIST-v0.1.md` is the historical Room Zero v0.1.0 checklist;
+it is not a generic founder-lane release checklist.
+`docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md` is the signed decision record that
+establishes the continuing founder lane. A generic founder-lane release
+checklist is required before the first non-Room-Zero publication.

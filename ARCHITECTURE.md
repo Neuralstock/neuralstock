@@ -90,7 +90,8 @@ GitHub contains:
 
 - JSON Schemas and registry specifications.
 - Ingestion, validation, Blender, and export tooling.
-- Human-reviewed asset intent and provenance manifests.
+- Asset intent and provenance manifests evaluated under an explicitly disclosed
+  independent-review or founder-self-assessment mode.
 - License attestations and contribution history.
 - Client packages, examples, documentation, and architectural decisions.
 - Pull-request checks and the initial trusted build pipeline.

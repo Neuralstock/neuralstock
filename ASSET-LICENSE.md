@@ -33,8 +33,9 @@ required to reproduce those credits.
 CC0 is not a trademark clearance, patent license, privacy release, or warranty.
 Every contribution must separately disclose relevant trademarks, distinctive
 product designs, people, fonts, HDRIs, textures, kitbash parts, and other
-dependencies. Publication means the recorded review passed; it is not legal
-advice to downstream users.
+dependencies. Publication means the disclosed assessment mode and required
+policy gates passed; founder self-assessment is not independent human review.
+Publication is not legal advice to downstream users.
 
 ## Software and specifications: MIT
 

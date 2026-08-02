@@ -1,7 +1,8 @@
-# The initial repository owner is the fallback until a second qualified
-# maintainer exists. Before applying `--reviewer LOGIN`, add `@LOGIN` beside the
-# owner on the global and protected-path entries below; the reconciler refuses
-# reviewer mode until it finds that login in this file.
+# The initial repository owner is accountable for the continuing founder lane.
+# CODEOWNERS ownership is not independent provenance or quality review. Before
+# applying `--reviewer LOGIN`, add `@LOGIN` beside the owner on the global and
+# protected-path entries below; the reconciler refuses reviewer mode until it
+# finds that login in this file.
 * @bighippoman
 
 /.github/ @bighippoman
