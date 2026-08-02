@@ -70,6 +70,8 @@ Deliver:
   immutable 1.0.0 manifests and attestation object preserved byte-for-byte and
   distinct migration evidence published;
 - deterministic checksums and GitHub build-provenance attestation;
+- a draft-first, exact-asset GitHub Release finalized only after R2 lock evidence
+  and verified through GitHub's immutable-release attestation;
 - independently attested package candidates plus protected OIDC publication to
   npm and PyPI;
 - protected, manual production deploy that consumes a specific workflow run,

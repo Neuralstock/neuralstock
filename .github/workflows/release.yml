@@ -18,17 +18,11 @@ on:
         required: true
         default: "2026-08-01T21:00:00Z"
         type: string
-      publish_github_release:
-        description: Publish the verified candidate to an existing matching tag
-        required: true
-        default: false
-        type: boolean
-
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ inputs.version }}
+  group: release-boundary-${{ inputs.version }}
   cancel-in-progress: false
 
 jobs:
@@ -152,15 +146,15 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  publish-github-release:
-    name: Publish GitHub release
-    if: inputs.publish_github_release
+  create-draft-release:
+    name: Create attested draft release
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: release
     permissions:
       actions: read
+      attestations: read
       contents: write
     steps:
       - name: Check out selected tag
@@ -199,14 +193,37 @@ jobs:
           test "$(jq -r .release_tag dist/release-candidate/release-metadata.json)" = \
             "$GITHUB_REF_NAME"
 
-      - name: Publish assets to matching tag
+      - name: Verify candidate build-provenance attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for subject in dist/release-candidate/*; do
+            gh attestation verify "$subject" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --source-ref "$GITHUB_REF" \
+              --source-digest "$GITHUB_SHA" \
+              --deny-self-hosted-runners
+          done
+
+      - name: Create draft release and attach the exact candidate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           test "$GITHUB_REF_TYPE" = tag
           test "$GITHUB_REF_NAME" = "v${{ inputs.version }}"
+          actual_assets=$(find dist/release-candidate \
+            -mindepth 1 -maxdepth 1 -type f -exec basename {} \; | sort)
+          expected_assets=$(printf '%s\n' \
+            SHA256SUMS \
+            "neuralstock-release-${{ inputs.version }}.tar.gz" \
+            r2-plan.json \
+            release-metadata.json \
+            worker-image-metadata.json | sort)
+          test "$actual_assets" = "$expected_assets"
           gh release create "$GITHUB_REF_NAME" \
             dist/release-candidate/* \
+            --draft \
             --generate-notes \
             --title "NeuralStock ${{ inputs.version }}" \
             --verify-tag

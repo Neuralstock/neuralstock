@@ -49,6 +49,7 @@ jobs:
     environment: production
     permissions:
       actions: read
+      attestations: read
       contents: read
     steps:
       - name: Check out the candidate revision
@@ -223,6 +224,17 @@ jobs:
           RELEASE_VERSION: ${{ inputs.version }}
           RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
         run: |
+          release_json=dist/immutable-github-release.json
+          gh api \
+            --header "X-GitHub-Api-Version: 2026-03-10" \
+            "repos/$GITHUB_REPOSITORY/releases/tags/v$RELEASE_VERSION" \
+            >"$release_json"
+          jq --exit-status \
+            --arg tag "v$RELEASE_VERSION" \
+            '.tag_name == $tag and .draft == false and .immutable == true' \
+            "$release_json" >/dev/null
+          gh release verify "v$RELEASE_VERSION" \
+            --repo "$GITHUB_REPOSITORY"
           asset_name="neuralstock-r2-release-lock-$EXPECTED_REVISION.json"
           evidence_dir=dist/retention-evidence
           mkdir -p "$evidence_dir"
@@ -234,6 +246,8 @@ jobs:
           test -f "$evidence_path"
           test "$(sha256sum "$evidence_path" | awk '{print $1}')" = \
             "$RETENTION_EVIDENCE_SHA256"
+          gh release verify-asset "v$RELEASE_VERSION" "$evidence_path" \
+            --repo "$GITHUB_REPOSITORY"
           uv run --frozen python tools/verify-r2-release-lock-evidence.py \
             "$evidence_path" \
             dist/deploy-r2-plan.json \
@@ -389,8 +403,9 @@ jobs:
             echo '```'
             echo
             echo "Hash and durably retain both credential-free JSON readbacks. Upload the"
-            echo "check-only JSON under its deterministic GitHub Release asset name, then"
-            echo "supply only that exact asset's SHA-256 to the publish dispatch."
+            echo "check-only JSON under its deterministic draft-release asset name. Then"
+            echo "run the protected Finalize release workflow and verify the release is"
+            echo "immutable before supplying that exact asset's SHA-256 to publish."
             echo "Also record dashboard confirmation. Do not store an R2 configuration token."
           } >>"$GITHUB_STEP_SUMMARY"
           echo "::warning title=Manual release retention gate required::Lock the two v0.2 contract prefixes and exact revision snapshot before dispatching publish."

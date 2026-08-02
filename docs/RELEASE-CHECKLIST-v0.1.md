@@ -48,6 +48,11 @@ No external contributor asset may use that exception.
 - [ ] The applied protection mode and exact reconciler command are in the release
       record. Reviewer mode is required for external assets; any first-party
       solo-mode use records the bootstrap exception explicitly.
+- [ ] Repository release immutability is enabled and the reconciler's readback
+      reports `enabled: true` before the draft is created.
+- [ ] The protected `release` environment contains only the narrowly scoped
+      `NEURALSTOCK_GITHUB_ADMIN_READ_TOKEN` needed to read that setting; release
+      writes continue to use the ephemeral `GITHUB_TOKEN`.
 
 ## 3. Locked checks
 
@@ -74,7 +79,7 @@ No external contributor asset may use that exception.
 - [ ] Record source commit, release workflow run ID, candidate SHA-256, registry
       revision, and entry/artifact counts.
 
-## 5. Attestation and optional GitHub Release
+## 5. Attestation and draft GitHub Release
 
 - [ ] GitHub build-provenance attestation exists for every candidate subject.
 - [ ] In reviewer mode, a second operator downloads the workflow artifact and
@@ -87,10 +92,11 @@ No external contributor asset may use that exception.
   ```
 
 - [ ] Candidate checksums verify outside the producing job.
-- [ ] If a GitHub Release is requested, workflow ref is the existing protected
-      tag `v<version>` and the protected `release` environment is approved.
-- [ ] No npm, PyPI, OCI, R2, or Pages publication is inferred from creating a
-      candidate or GitHub Release.
+- [ ] The workflow ref is the existing protected tag `v<version>`, the protected
+      `release` environment is approved, and the resulting release is still a
+      draft with exactly the five attested candidate assets.
+- [ ] No npm, PyPI, OCI, R2, Pages, or published GitHub Release is inferred from
+      creating the candidate draft.
 
 ## 6. Package publication
 
@@ -129,8 +135,8 @@ No external contributor asset may use that exception.
 - [ ] Every v0.2 schema, the v0.2 `web-v1` profile, and both adjacent `LICENSE`
       companions are byte-identical through the public schema origin after
       Phase A; the immutable-bootstrap workflow evidence artifact is retained.
-- [ ] Signed tag `v0.1.0` already has its non-draft GitHub Release; that release
-      is the sole durable location accepted for the deterministic lock evidence.
+- [ ] Signed tag `v0.1.0` already has its exact five-asset draft release; that
+      draft is the only accepted destination for the deterministic lock evidence.
 - [ ] R2 scoped publication credentials and Pages token are present only in the
       protected environment.
 - [ ] A separate `CLOUDFLARE_REDIRECT_API_TOKEN` has only `Zone > Zone > Read`
@@ -141,10 +147,12 @@ No external contributor asset may use that exception.
       301, preserves path and query, and has passed API readback. The Pages
       `_redirects` file contains no unsupported domain-level rule.
 - [ ] Do not dispatch phase `publish` until Section 8 is complete and its
-      independent JSON readback is a deterministic GitHub Release asset.
+      independent JSON readback is a deterministic draft asset and the protected
+      finalizer has made that exact six-asset release immutable.
 - [ ] Phase `publish` downloads that asset, verifies its caller-supplied SHA-256,
-      binds its revision and release-plan SHA-256 to the candidate, and validates
-      all eight exact enabled-indefinite baseline/target rules before any write.
+      verifies the GitHub release and asset attestations, binds its revision and
+      release-plan SHA-256 to the candidate, and validates all eight exact
+      enabled-indefinite baseline/target rules before any write.
 - [ ] Immutable objects and version manifests are reverified before aliases.
 - [ ] `registry.json` updates before `snapshots/latest.json`, with the latter last.
 - [ ] Live registry revision equals the approved revision.
@@ -197,8 +205,14 @@ Historical indefinite locks must remain present and retain their original names:
       operator and UTC timestamp.
 - [ ] Copy the check-only JSON to
       `neuralstock-r2-release-lock-<revision>.json`; confirm that name is absent
-      from GitHub Release `v0.1.0`, upload it once without `--clobber`, and record
-      its SHA-256. Phase B must retrieve this exact asset.
+      from draft release `v0.1.0`, upload it once without `--clobber`, and record
+      its SHA-256.
+- [ ] Dispatch `Finalize release` from the same signed tag with that revision and
+      SHA-256. It accepts exactly five attested candidate assets plus this one
+      evidence file, verifies candidate and lock content, publishes once, and
+      reads back `immutable: true`.
+- [ ] `gh release verify v0.1.0` and `gh release verify-asset` succeed for all six
+      local files. Phase B must retrieve the exact immutable evidence asset.
 - [ ] The Cloudflare dashboard independently shows all three exact prefixes and
       indefinite conditions. Until this evidence exists and Phase B passes, the
       release remains incomplete.
@@ -207,6 +221,7 @@ Historical indefinite locks must remain present and retain their original names:
 
 - [ ] Scheduled production health passes after caches settle.
 - [ ] Release record links the source commit, candidate workflow, attestation,
-      production deployment, registry revision, and snapshot lock evidence.
+      draft, finalizer, immutable release attestation, production deployment,
+      registry revision, and snapshot lock evidence.
 - [ ] Restore and withdrawal contacts are assigned for the release window.
 - [ ] Any known limitation is documented without weakening the published gates.

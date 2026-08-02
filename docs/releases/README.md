@@ -23,10 +23,13 @@ Production-workflow success alone cannot make a record complete. A fresh
 contract namespace needs an immutable-only Phase A followed by manual OAuth
 apply/readback evidence for the schema, profile, and exact snapshot prefixes.
 The check-only JSON is uploaded once under its deterministic name to the signed-
-tag GitHub Release; Phase B must retrieve, hash, parse, and candidate-bind it
-before aliases or the site change. Record the operator, UTC timestamp, both JSON
-hashes, release asset, and independent Cloudflare dashboard readback. This gate
-stays manual because the available bucket-configuration credential is
-account-wide and is intentionally not stored in GitHub.
+tag draft release. A protected finalizer must verify the exact candidate and
+evidence set, publish it once with repository release immutability enabled, and
+verify GitHub's immutable-release attestation. Phase B must then retrieve, hash,
+parse, attest, and candidate-bind that immutable asset before aliases or the
+site change. Record the operator, UTC timestamp, both JSON hashes, draft and
+finalizer runs, immutable release, asset, and independent Cloudflare dashboard
+readback. This gate stays manual because the available bucket-configuration
+credential is account-wide and is intentionally not stored in GitHub.
 
 The first record is [`v0.1.0.md`](v0.1.0.md).

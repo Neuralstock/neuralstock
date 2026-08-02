@@ -38,8 +38,10 @@ Writers publish in two phases:
 6. Stop before aliases; verify every Phase A byte publicly and directly in R2,
    then indefinitely lock both v0.2 contract prefixes and the exact revision
    snapshot prefix.
-7. In Phase B, re-verify all immutable bytes and replace `registry.json`, then
-   the canonical `snapshots/latest.json` alias.
+7. Bind the lock readback to the release candidate and publish the complete
+   GitHub Release immutably.
+8. In Phase B, verify that immutable release, re-verify all R2 immutable bytes,
+   and replace `registry.json`, then the canonical `snapshots/latest.json` alias.
 
 If a create-only destination already exists, the writer accepts it only when
 the recorded SHA-256 and byte count match. A failure before step 5 may leave

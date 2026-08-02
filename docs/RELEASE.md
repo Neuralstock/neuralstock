@@ -84,8 +84,10 @@ tools/verify-release-candidate.sh dist/release-candidate 0.1.0 '<registry-revisi
 
 The candidate contains a deterministic release archive, ordered R2 plan,
 worker-image metadata, protected tag and package identity, and `SHA256SUMS`.
-GitHub attests those subjects and stores the candidate temporarily. This does
-not publish to R2, Pages, npm, PyPI, or an OCI registry.
+GitHub attests all five subjects, stores the candidate temporarily, verifies the
+attestations, and creates an unpublished draft release containing exactly those
+five files. This does not publish a GitHub Release, R2, Pages, npm, PyPI, or an
+OCI registry.
 
 The protected `Production deploy` workflow accepts a specific candidate run ID,
 version, commit, and revision. It reproduces the candidate's R2 plan, writes
@@ -119,12 +121,23 @@ or reads back only `schema-v0.2`, `profile-v0.2`, and the exact snapshot rule.
 
 The independent check-only JSON is uploaded once, without replacement, under
 the deterministic `neuralstock-r2-release-lock-<revision>.json` name on the
-signed-tag GitHub Release. Phase B retrieves that asset, verifies the supplied
-SHA-256, parses all eight historical/target rules, and binds its revision and
-release-plan hash to the candidate before any write. A Phase A green status or
-a hex-looking caller input is not retention evidence. The release remains
-incomplete until Phase B, both JSON records, the release asset, and independent
-dashboard confirmation are recorded.
+signed-tag draft release. Dispatch `Finalize release` from that same signed tag
+with the exact revision and evidence SHA-256. The protected finalizer requires
+repository release immutability, downloads every draft asset by its API ID,
+accepts exactly the five attested candidate files plus that one evidence file,
+re-verifies checksums, source commit, version, revision, build attestations, and
+the complete R2 evidence, then publishes the draft exactly once. It requires a
+fresh API readback with `immutable: true` and verifies GitHub's automatically
+generated release attestation and all six assets. If publication succeeds but a
+later check fails, the finalizer can be rerun: it accepts only the exact already-
+immutable release, skips the publication mutation, and repeats all checks. It
+never accepts a published mutable release. Phase B retrieves the now-
+immutable evidence asset, verifies its supplied SHA-256 and release attestation,
+parses all eight historical/target rules, and binds its revision and release-
+plan hash to the candidate before any write. A Phase A green status or a hex-
+looking caller input is not retention evidence. The release remains incomplete
+until immutable GitHub finalization, Phase B, both JSON records, the release
+asset, and independent dashboard confirmation are recorded.
 
 ## Publish package distributions
 

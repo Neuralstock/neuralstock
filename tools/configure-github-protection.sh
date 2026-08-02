@@ -68,6 +68,7 @@ GitHub rollout protection plan for $repository:
 - squash-only merges, signed commits, protected main, no force-push or deletion;
 - required CI/security contexts and pull requests;
 - active v* tag ruleset restricting create, move, and delete to @$maintainer_login;
+- repository release immutability enabled and read back before any release;
 - release, npm, and pypi environments allow only v* tags;
 - production allows only branch main or v* tags;
 - review mode: $review_summary.
@@ -245,6 +246,25 @@ api \
   -F delete_branch_on_merge=true \
   -F has_issues=true >/dev/null
 
+if immutable_releases_json=$(api \
+  "repos/$repository/immutable-releases" 2>/dev/null); then
+  if printf '%s' "$immutable_releases_json" | jq -e '.enabled == true' >/dev/null; then
+    :
+  elif printf '%s' "$immutable_releases_json" \
+    | jq -e '.enabled == false and .enforced_by_owner == false' >/dev/null; then
+    api \
+      --method PUT \
+      "repos/$repository/immutable-releases" >/dev/null
+  else
+    >&2 echo "GitHub returned an invalid immutable-releases state"
+    exit 65
+  fi
+else
+  api \
+    --method PUT \
+    "repos/$repository/immutable-releases" >/dev/null
+fi
+
 jq -n \
   --argjson approvals "$required_approvals" \
   --argjson code_owner "$require_code_owner" \
@@ -408,6 +428,11 @@ configure_environment pypi tag:v\*
 configure_environment production branch:main tag:v\*
 
 api "repos/$repository/branches/main/protection" >/dev/null
+immutable_releases_json=$(api "repos/$repository/immutable-releases")
+printf '%s' "$immutable_releases_json" | jq -e '.enabled == true' >/dev/null || {
+  >&2 echo "repository release immutability was not enabled"
+  exit 65
+}
 api "repos/$repository/rulesets?targets=tag&per_page=100" \
   --jq ".[] | select(.name == \"$tag_ruleset_name\")" >/dev/null
 for environment in release npm pypi production; do

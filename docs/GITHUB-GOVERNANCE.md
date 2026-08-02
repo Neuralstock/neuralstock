@@ -37,12 +37,13 @@ retain GitHub's redirect from the temporary personal-account location.
 The script is dry-run-only without `--apply` and is pinned to the canonical
 public, organization-owned repository with default branch `main`. It verifies
 that `@bighippoman` retains administrator permission and reconciles
-squash-only merge settings; pull-request-only, signed, linear `main`; five
-required checks; an active `v*` tag ruleset; and the four protected environment
-ref policies. It refuses duplicate named rulesets, unexpected environment ref
-patterns, the initial maintainer used as the second reviewer, or reviewer mode
-before that reviewer appears in `.github/CODEOWNERS`. It never deletes an
-unexpected rule.
+squash-only merge settings; repository release immutability; pull-request-only,
+signed, linear `main`; five required checks; an active `v*` tag ruleset; and the
+four protected environment ref policies. It reads the immutable-release setting
+back after enabling it. It refuses duplicate named rulesets, unexpected
+environment ref patterns, the initial maintainer used as the second reviewer,
+or reviewer mode before that reviewer appears in `.github/CODEOWNERS`. It never
+deletes an unexpected rule.
 
 GitHub has no transaction spanning repository, ruleset, and environment APIs.
 An API failure can therefore leave a safe partial application; correct the
@@ -85,6 +86,12 @@ GitHub documents tag restrictions as repository
 The environment ref filters below are a second boundary, not a substitute for
 protecting tag creation and movement.
 
+GitHub's [immutable release guidance](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/establish-provenance-and-integrity/prevent-release-changes)
+states that the setting affects future publications, and its recommended flow
+is draft, attach every asset, then publish. NeuralStock therefore enables and
+reads back the repository setting before creating the first draft and never
+adds, replaces, or deletes an asset after finalization.
+
 The GitHub deployment-policy list response may omit whether an existing pattern
 is a branch or tag rule. The reconciler sends the explicit type when creating a
 rule but cannot prove that type on every later readback. Inspect the four
@@ -116,8 +123,14 @@ required reviewer for the bootstrap reason above.
 - Require a non-initiating release-operator reviewer in reviewer mode.
 - Select only tags matching `v*` as permitted deployment refs.
 - Do not add Cloudflare or package-registry credentials.
-- The only write granted by the release job is `contents: write` for the
-  explicitly requested GitHub Release.
+- Store `NEURALSTOCK_GITHUB_ADMIN_READ_TOKEN` only in this environment. It must
+  be a fine-grained token restricted to `Neuralstock/neuralstock` with read-only
+  repository Administration permission and no write permission. The protected
+  finalizer uses it only to fail closed on the repository immutable-releases
+  setting before publication, because `GITHUB_TOKEN` has no Administration
+  permission.
+- Release creation and finalization use the ephemeral `GITHUB_TOKEN`; their only
+  write is `contents: write` for the explicitly requested draft or publication.
 
 ### `production`
 
@@ -158,6 +171,9 @@ gh api repos/Neuralstock/neuralstock/rulesets \
   --jq '.[] | select(.name == "neuralstock-release-tags")'
 gh api repos/Neuralstock/neuralstock/environments \
   --jq '.environments[] | [.name, .deployment_branch_policy]'
+gh api \
+  -H 'X-GitHub-Api-Version: 2026-03-10' \
+  repos/Neuralstock/neuralstock/immutable-releases
 ```
 
 Secrets:
@@ -194,10 +210,14 @@ all immutable content without aliases or Pages. The local gate directly verifies
 that graph and creates the exact v0.2 schema, profile, and revision-snapshot
 locks. Its independent JSON readback is uploaded once, without `--clobber`, as
 the deterministic asset `neuralstock-r2-release-lock-<revision>.json` on the
-signed-tag GitHub Release. Phase `publish` downloads that asset, verifies the
-operator-supplied SHA-256, parses all exact rules, and binds the evidence's plan
-hash and revision to the candidate before any write. A phase-A green status or
-a caller-supplied hash alone is not lock evidence.
+signed-tag draft release. The protected `Finalize release` workflow verifies
+the exact six-asset set, candidate checksums and identity, build attestations,
+lock evidence, and immutable-releases setting before publishing the draft once.
+It then verifies `immutable: true` and GitHub's release attestation. Only after
+that does phase `publish` download the asset, verify the operator-supplied
+SHA-256 and immutable release attestation, parse all exact rules, and bind the
+evidence's plan hash and revision to the candidate before any write. A phase-A
+green status or a caller-supplied hash alone is not lock evidence.
 
 ## Workflow responsibilities
 
@@ -207,11 +227,12 @@ a caller-supplied hash alone is not lock evidence.
 | `Security` | Pull request, `main`, schedule | Security analysis results only |
 | `Package candidate` | Tag or manual | GitHub attestation and temporary artifact; no npm/PyPI publication |
 | `Publish packages` | Manual on a protected tag | OIDC publication to selected npm/PyPI registries |
-| `Release candidate` | Manual | Attestation and temporary artifact; optional protected GitHub Release |
-| `Production deploy` | Manual, protected environment | Phase A: immutable R2 objects only; Phase B: aliases, canonical host rule, and Cloudflare Pages after verified lock evidence |
+| `Release candidate` | Manual on a protected tag | Attestation, temporary artifact, and exact five-asset draft GitHub Release |
+| `Finalize release` | Manual on a protected tag and protected environment | Verifies the candidate and R2 evidence, then publishes the draft once as an immutable six-asset release |
+| `Production deploy` | Manual, protected environment | Phase A: immutable R2 objects only; Phase B: aliases, canonical host rule, and Cloudflare Pages only after the immutable GitHub Release verifies |
 | `Production health` | Schedule or manual | No |
 
-The release workflow receives no Cloudflare credential. The deploy workflow
+The release and finalizer workflows receive no Cloudflare credential. The deploy workflow
 downloads a candidate from a specific release run and rejects it unless its
 source commit, version, checksums, and registry revision match the operator's
 request.
@@ -249,14 +270,16 @@ OIDC publication, so no PyPI API token is required. If the project already
 exists under the maintainer's control, configure the same identity in the
 project's Publishing settings instead.
 
-As of 2026-08-01, unauthenticated registry checks returned not found for both
-names; that indicates no public release, not ownership or reservation. The npm
-scope and first package release must therefore be bootstrapped interactively by
-Joseph Nordqvist if npm will not allow a trusted publisher before the package
-exists. Publish the already attested archive from a protected tag with account
-2FA, immediately configure the trusted publisher, and remove any temporary
-automation token. Never copy a bootstrap token into GitHub. PyPI should use its
-pending-publisher flow instead of a manual upload.
+As of 2026-08-01, the npm organization `neuralstock` exists with owner `jnordq`
+and organization-wide 2FA enforcement, but `@neuralstock/client` has not yet
+been published. If npm requires an existing package before trusted publishing
+can be activated, Joseph Nordqvist performs the first upload interactively from
+the exact attested archive, immediately configures the trusted publisher, and
+removes any temporary automation token. Never copy a bootstrap token into
+GitHub. PyPI already has the pending publisher for project `neuralstock`, owner
+`Neuralstock`, repository `neuralstock`, workflow `publish-packages.yml`, and
+environment `pypi`; the project itself has not yet been published and should be
+created by that pending-publisher flow rather than a manual upload.
 
 For every version after bootstrap:
 

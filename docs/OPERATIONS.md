@@ -110,7 +110,8 @@ values against regression.
 
 The existing `schema-v0.1`, `profile-v0.1`, and Room Zero snapshot rules are
 historical locks. Never rename, weaken, or reinterpret them as v0.2 protection.
-The first v0.2 publication uses a two-phase bootstrap:
+The first v0.2 publication uses a two-phase R2 bootstrap with an immutable
+GitHub Release boundary between the phases:
 
 1. dispatch `Production deploy` with phase `immutable-bootstrap`; it accepts an
    all-absent or exact-byte v0.2 namespace, stages every immutable plan item and
@@ -120,11 +121,16 @@ The first v0.2 publication uses a two-phase bootstrap:
    `v0.2/`, `profile-v0.2` on `profiles/v0.2/`, and the exact revision-snapshot
    rule, all indefinitely;
 3. independently rerun the gate, hash its check-only JSON, upload that JSON once
-   under its deterministic name to the signed-tag GitHub Release, and confirm
-   all three rules in the Cloudflare dashboard; and
-4. dispatch phase `publish` with the evidence SHA-256. The workflow retrieves
-   and parses that exact release asset, binds it to the candidate plan, then
-   re-verifies immutable content before publishing aliases and the site.
+   under its deterministic name to the signed-tag draft release, and confirm
+   all three rules in the Cloudflare dashboard;
+4. dispatch protected `Finalize release` on that tag with the revision and
+   evidence SHA-256; it verifies exactly five candidate assets plus the evidence,
+   all candidate and R2 gates, repository release immutability, and both GitHub
+   attestation layers before the draft becomes immutable; and
+5. only after `gh release verify v<version>` succeeds, dispatch phase `publish`
+   with the evidence SHA-256. The workflow verifies the immutable release and
+   asset, binds it to the candidate plan, then re-verifies immutable content
+   before publishing aliases and the site.
 
 Cloudflare exposes bucket-lock configuration through its account-level R2
 configuration API. The bucket-scoped S3 object credentials used by deployment
@@ -170,11 +176,20 @@ identical pre/post bytes. Its credential-free JSON includes the plan hash,
 complete direct-R2 key/hash/size evidence, and all lock rules.
 
 The independent invocation must report `mode: already-present` and no created
-rules. Phase `publish` accepts neither a caller assertion nor a placeholder
-hash: it downloads the deterministic asset from GitHub Release `v0.1.0`, checks
-its exact SHA-256 and JSON contract, and binds its revision and plan hash before
-any external write. Record both Phase A and Phase B runs, operator, UTC time,
-both local JSON hashes, release-asset link/hash, and dashboard confirmation in
+rules. After the upload, dispatch `Finalize release` from tag `v0.1.0` with the
+exact revision and check-only hash. It rejects an extra or missing asset, a
+byte/API-digest mismatch, an unattested candidate, invalid lock evidence,
+disabled repository release immutability, or any published mutable release. If
+a prior finalizer run published successfully but failed during post-publication
+checks, a rerun accepts only that exact already-immutable six-asset release,
+performs no publication mutation, and repeats every verification. Record its run
+and verify `gh release verify v0.1.0` before Phase B. Phase `publish` accepts
+neither a caller assertion nor a placeholder hash: it downloads the
+deterministic asset from immutable GitHub Release `v0.1.0`, checks the release
+and asset attestations, exact SHA-256 and JSON contract, and binds its revision
+and plan hash before any external write. Record Phase A, finalizer, and Phase B
+runs, operator, UTC time, both local JSON hashes, release-asset link/hash,
+immutable-release verification, and dashboard confirmation in
 `docs/releases/<tag>.md`.
 Cloudflare's
 [bucket-lock documentation](https://developers.cloudflare.com/r2/buckets/bucket-locks/)
@@ -218,7 +233,8 @@ credential usage, and confirm a second operator can execute the runbook.
 ## Production deployment
 
 1. Complete `docs/RELEASE-CHECKLIST-v0.1.md`.
-2. Run `Release candidate` on the intended protected commit or tag.
+2. Run `Release candidate` on the intended protected tag. It creates an
+   unpublished draft with exactly the five attested candidate assets.
 3. Record its workflow run ID, release version, source commit, registry revision,
    candidate checksums, and attestation URL.
 4. Start `Production deploy` phase `immutable-bootstrap` on that exact commit
@@ -231,14 +247,19 @@ credential usage, and confirm a second operator can execute the runbook.
    immutable object with no alias or Pages update, confirms alias bytes did not
    change, and verifies all twelve public v0.2 contract files after cache
    convergence.
-7. Complete the manual OAuth retention gate and deterministic GitHub Release
-   evidence upload described above. Record independent dashboard confirmation.
-8. Start phase `publish` on the same commit and candidate with the exact SHA-256
-   of the uploaded check-only evidence. A protected-environment reviewer checks
-   the deterministic asset before approval.
-9. Phase B downloads, hashes, parses, and candidate-binds the evidence before
-   any write; then it re-verifies immutable content, publishes both aliases,
-   optionally deploys Pages, and runs the complete production verifier.
+7. Complete the manual OAuth retention gate and upload the deterministic
+   evidence to the draft described above. Record independent dashboard
+   confirmation.
+8. Run protected `Finalize release` on the same tag with the exact revision and
+   evidence SHA-256. Record its exact asset/digest checks, build attestations,
+   R2 evidence verification, `immutable: true` readback, and release attestation.
+9. Start phase `publish` on the same commit and candidate with the exact SHA-256
+   of the now-immutable evidence. A protected-environment reviewer checks the
+   deterministic asset before approval.
+10. Phase B verifies the immutable release and asset, hashes, parses, and
+    candidate-binds the evidence before any write; then it re-verifies immutable
+    content, publishes both aliases, optionally deploys Pages, and runs the
+    complete production verifier.
 
 This two-phase namespace bootstrap is required because v0.2 is fresh while the
 existing v0.1 prefixes are immutable historical records. Once v0.2 is already

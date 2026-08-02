@@ -62,8 +62,11 @@ revision even when the Blender source and GLB geometry are unchanged. Therefore:
    snapshot, but does not update either alias or the site;
 6. byte-verify Phase A through the public origin and direct R2 reads, then add
    and read back indefinite locks for `v0.2/`, `profiles/v0.2/`, and the exact
-   `snapshots/<revision>/` prefix; and
-7. Phase B re-verifies the immutable graph before updating aliases and the site.
+   `snapshots/<revision>/` prefix;
+7. attach that exact readback to the candidate draft and finalize the exact
+   six-asset GitHub Release under repository release immutability; and
+8. Phase B verifies the immutable release and re-verifies the immutable graph
+   before updating aliases and the site.
 
 The previously deployed preview revision is retained as immutable historical
 bytes but must not remain the mutable canonical registry after this migration.

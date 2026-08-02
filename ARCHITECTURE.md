@@ -99,8 +99,9 @@ Large generated binaries do not belong in Git history. The 7.4 MB Room Zero
 pilot deliberately versions its 15 accepted `.blend` inputs so a fresh clone
 can prove the complete build; this is a bounded bootstrap exception. Generated
 GLBs, previews, reports, and future accepted sources are published to R2 once
-the collection outgrows that exception. GitHub Releases remain an acceptable
-temporary mirror.
+the collection outgrows that exception. A GitHub Release is an acceptable
+release mirror only when its complete asset set is attached as a draft and the
+published release is verified immutable.
 
 ### R2: immutable artifact storage
 

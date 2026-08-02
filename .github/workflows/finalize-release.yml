@@ -1,0 +1,318 @@
+name: Finalize release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Expected semantic version without the v prefix
+        required: true
+        default: 0.1.0
+        type: string
+      registry_revision:
+        description: Expected 64-character registry revision
+        required: true
+        type: string
+      retention_evidence_sha256:
+        description: SHA-256 of the deterministic R2 lock readback attached to the draft
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-boundary-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    name: Verify and publish immutable release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: release
+    permissions:
+      attestations: read
+      contents: write
+    steps:
+      - name: Check out selected tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Verify protected release tag on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          test "$GITHUB_REF_TYPE" = tag
+          test "$GITHUB_REF_NAME" = "v$RELEASE_VERSION"
+          tools/verify-release-tag.sh "$RELEASE_VERSION" "$GITHUB_SHA"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install locked verification dependencies
+        run: uv sync --frozen
+
+      - name: Require repository release immutability
+        env:
+          GH_TOKEN: ${{ secrets.NEURALSTOCK_GITHUB_ADMIN_READ_TOKEN }}
+        run: |
+          test -n "$GH_TOKEN"
+          gh api \
+            --header "X-GitHub-Api-Version: 2026-03-10" \
+            "repos/$GITHUB_REPOSITORY/immutable-releases" \
+            >dist-immutable-releases.json
+          jq --exit-status '.enabled == true' dist-immutable-releases.json >/dev/null
+
+      - name: Resolve the one releasable tag state
+        id: resolve_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v${{ inputs.version }}
+        run: |
+          gh api --paginate --slurp \
+            --header "X-GitHub-Api-Version: 2026-03-10" \
+            "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            >dist-release-pages.json
+          jq '[.[][]]' dist-release-pages.json >dist-releases.json
+          jq --exit-status \
+            --arg tag "$RELEASE_TAG" \
+            '[.[] | select(.tag_name == $tag)] | length == 1' \
+            dist-releases.json >/dev/null
+          jq \
+            --arg tag "$RELEASE_TAG" \
+            '.[] | select(.tag_name == $tag)' \
+            dist-releases.json >dist-draft-release.json
+          if jq --exit-status \
+            '.draft == true and .immutable == false and .published_at == null' \
+            dist-draft-release.json >/dev/null; then
+            echo 'release_mode=draft' >>"$GITHUB_OUTPUT"
+            echo 'expected_state=draft' >>"$GITHUB_OUTPUT"
+          elif jq --exit-status \
+            '.draft == false and .immutable == true
+              and (.published_at | type == "string" and length > 0)' \
+            dist-draft-release.json >/dev/null; then
+            echo 'release_mode=immutable-recovery' >>"$GITHUB_OUTPUT"
+            echo 'expected_state=immutable' >>"$GITHUB_OUTPUT"
+          else
+            echo 'release must be an unpublished mutable draft or an already-immutable exact rerun' >&2
+            jq '{id, tag_name, draft, immutable, published_at}' \
+              dist-draft-release.json >&2
+            exit 1
+          fi
+
+      - name: Download the complete release asset set
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+        run: |
+          mkdir -p dist/draft-release
+          actual_assets=$(jq -r '.assets[].name' dist-draft-release.json | sort)
+          expected_assets=$(printf '%s\n' \
+            SHA256SUMS \
+            "neuralstock-r2-release-lock-$EXPECTED_REVISION.json" \
+            "neuralstock-release-$EXPECTED_VERSION.tar.gz" \
+            r2-plan.json \
+            release-metadata.json \
+            worker-image-metadata.json | sort)
+          test "$actual_assets" = "$expected_assets"
+          for asset_name in \
+            SHA256SUMS \
+            "neuralstock-r2-release-lock-$EXPECTED_REVISION.json" \
+            "neuralstock-release-$EXPECTED_VERSION.tar.gz" \
+            r2-plan.json \
+            release-metadata.json \
+            worker-image-metadata.json; do
+            asset_id=$(jq -er \
+              --arg name "$asset_name" \
+              '[.assets[] | select(.name == $name)]
+                | if length == 1 then .[0].id else error("asset is not unique") end' \
+              dist-draft-release.json)
+            printf '%s\n' "$asset_id" | grep -Eq '^[1-9][0-9]*$'
+            gh api \
+              --header 'Accept: application/octet-stream' \
+              "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" \
+              >"dist/draft-release/$asset_name"
+          done
+
+      - name: Verify candidate, release state, and lock evidence
+        env:
+          EXPECTED_BUCKET: ${{ vars.NEURALSTOCK_R2_BUCKET || 'neuralstock-public' }}
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          EXPECTED_STATE: ${{ steps.resolve_release.outputs.expected_state }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          tools/verify-release-candidate.sh \
+            dist/draft-release \
+            "$EXPECTED_VERSION" \
+            "$EXPECTED_REVISION"
+          uv run --frozen python tools/verify-github-release-state.py \
+            dist-draft-release.json \
+            dist/draft-release \
+            "$EXPECTED_VERSION" \
+            "$EXPECTED_REVISION" \
+            "$GITHUB_SHA" \
+            "$RETENTION_EVIDENCE_SHA256" \
+            --state "$EXPECTED_STATE"
+          evidence_path="dist/draft-release/neuralstock-r2-release-lock-$EXPECTED_REVISION.json"
+          uv run --frozen python tools/verify-r2-release-lock-evidence.py \
+            "$evidence_path" \
+            dist/draft-release/r2-plan.json \
+            "$EXPECTED_REVISION" \
+            "$EXPECTED_BUCKET"
+
+      - name: Verify every candidate build-provenance attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          for subject in \
+            dist/draft-release/SHA256SUMS \
+            "dist/draft-release/neuralstock-release-$RELEASE_VERSION.tar.gz" \
+            dist/draft-release/r2-plan.json \
+            dist/draft-release/release-metadata.json \
+            dist/draft-release/worker-image-metadata.json; do
+            gh attestation verify "$subject" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --source-ref "$GITHUB_REF" \
+              --source-digest "$GITHUB_SHA" \
+              --deny-self-hosted-runners
+          done
+
+      - name: Re-verify and publish the draft or recover immutable state
+        env:
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_MODE: ${{ steps.resolve_release.outputs.release_mode }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          release_id=$(jq -er .id dist-draft-release.json)
+          case "$RELEASE_MODE" in
+            draft)
+              jq -n '{draft: false}' >dist-publish-release.json
+              tools/verify-release-tag.sh "$EXPECTED_VERSION" "$GITHUB_SHA"
+              gh api \
+                --header "X-GitHub-Api-Version: 2026-03-10" \
+                "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+                >dist-prepublish-release.json
+              test "$(jq -r .id dist-prepublish-release.json)" = "$release_id"
+              uv run --frozen python tools/verify-github-release-state.py \
+                dist-prepublish-release.json \
+                dist/draft-release \
+                "$EXPECTED_VERSION" \
+                "$EXPECTED_REVISION" \
+                "$GITHUB_SHA" \
+                "$RETENTION_EVIDENCE_SHA256" \
+                --state draft
+              gh api \
+                --method PATCH \
+                --header "X-GitHub-Api-Version: 2026-03-10" \
+                "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+                --input dist-publish-release.json \
+                >dist-published-release.json
+              test "$(jq -r .id dist-published-release.json)" = "$release_id"
+              ;;
+            immutable-recovery)
+              gh api \
+                --header "X-GitHub-Api-Version: 2026-03-10" \
+                "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+                >dist-prepublish-release.json
+              uv run --frozen python tools/verify-github-release-state.py \
+                dist-prepublish-release.json \
+                dist/draft-release \
+                "$EXPECTED_VERSION" \
+                "$EXPECTED_REVISION" \
+                "$GITHUB_SHA" \
+                "$RETENTION_EVIDENCE_SHA256" \
+                --state immutable
+              echo 'Exact immutable release already exists; skipped publication mutation.'
+              ;;
+            *)
+              echo "unsupported release mode: $RELEASE_MODE" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Verify immutable state and GitHub release attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: v${{ inputs.version }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          release_id=$(jq -er .id dist-draft-release.json)
+          attempt=1
+          while :; do
+            gh api \
+              --header "X-GitHub-Api-Version: 2026-03-10" \
+              "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+              >dist-immutable-release.json
+            if jq --exit-status \
+              '.draft == false and .immutable == true' \
+              dist-immutable-release.json >/dev/null; then
+              break
+            fi
+            if test "$attempt" -ge 12; then
+              echo "published release did not become immutable" >&2
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            sleep 5
+          done
+          uv run --frozen python tools/verify-github-release-state.py \
+            dist-immutable-release.json \
+            dist/draft-release \
+            "$EXPECTED_VERSION" \
+            "$EXPECTED_REVISION" \
+            "$GITHUB_SHA" \
+            "$RETENTION_EVIDENCE_SHA256" \
+            --state immutable
+
+          attempt=1
+          while ! gh release verify "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY"; do
+            if test "$attempt" -ge 12; then
+              echo "immutable release attestation did not become verifiable" >&2
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            sleep 5
+          done
+          for asset in dist/draft-release/*; do
+            gh release verify-asset "$RELEASE_TAG" "$asset" \
+              --repo "$GITHUB_REPOSITORY"
+          done
+
+      - name: Record immutable release handoff
+        env:
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          RELEASE_MODE: ${{ steps.resolve_release.outputs.release_mode }}
+          RELEASE_TAG: v${{ inputs.version }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          if test "$RELEASE_MODE" = immutable-recovery; then
+            outcome='re-verified the exact already-immutable release without mutating it'
+          else
+            outcome='published the verified draft and verified its immutable state'
+          fi
+          {
+            echo "## Immutable GitHub Release verified"
+            echo
+            echo "The protected finalizer accepted the exact five attested candidate"
+            echo "assets plus the candidate-bound R2 lock readback, $outcome, and"
+            echo "verified GitHub's immutable release attestation."
+            echo
+            echo "- Tag: \`$RELEASE_TAG\`"
+            echo "- Source commit: \`$GITHUB_SHA\`"
+            echo "- Registry revision: \`$EXPECTED_REVISION\`"
+            echo "- R2 lock evidence SHA-256: \`$RETENTION_EVIDENCE_SHA256\`"
+          } >>"$GITHUB_STEP_SUMMARY"
