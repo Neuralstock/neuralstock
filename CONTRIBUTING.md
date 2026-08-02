@@ -14,6 +14,28 @@ creator-authored packed inputs. Imports, third-party artistic dependencies,
 recognizable people or brands, animations, and ambiguous AI-derived inputs need
 a separately approved policy before submission.
 
+The continuing `first-party-founder-controlled` lane is not public contributor
+intake. Joseph Nordqvist / `@bighippoman` may submit qualifying
+founder-controlled first-party candidates under
+[`docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md`](docs/FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md).
+That lane has no model-count or calendar limit and records founder
+self-assessment with zero independent human approval. It
+does not authorize another contributor, any human-created external artistic
+input, or a failed candidate. Disclosure, assignment, or CC0 status does not
+convert another person's art into founder-origin work. A non-Room-Zero
+first-party asset cannot
+publish until the required machine-readable lane, generated-reference policy
+when applicable, quarantine receipt, category profile, append-only ID
+registration, public disclosure, and auditable withdrawal path are enforced
+from protected `main`.
+
+Accepted models do not remain in a private creation repository. Their immutable
+`.blend`, GLB, metadata, previews, evidence, and CC0 record are promoted to the
+public artifact store and canonical registry, where the website, API, and SDK
+can expose them individually. See
+[`docs/ASSET-LIFECYCLE.md`](docs/ASSET-LIFECYCLE.md) for the staging,
+evaluation, publication, and discovery flow.
+
 Use a stable lower-snake-case asset ID such as `procedural_crate_01`. Versions
 use semantic versioning and are immutable after publication.
 
@@ -84,6 +106,11 @@ hashes, and quarantine submission ID. Pull-request checkboxes support review but
 do not replace that versioned record. The contributor cannot approve their own
 rights review. Publication requires two distinct reviewers under
 [`GOVERNANCE.md`](GOVERNANCE.md).
+
+The founder lane does not weaken that external-contribution rule. Joseph acts
+as controller, dedicator, self-assessor, and release operator—not as an
+independent provenance reviewer. Those affiliated roles must never be
+described as independent.
 
 ## `web-v1` authoring rules
 

@@ -16,9 +16,12 @@ release immutability is enabled. The signed `v0.1.0` tag targets
 Release is public and immutable.
 
 The controls were applied in the explicitly recorded solo-maintainer mode.
-That is sufficient for the first-party Room Zero release, but it is not
-independent approval and does not open external contributor publication. The
-reviewer-mode transition below remains mandatory before that boundary changes.
+That was sufficient for the first-party Room Zero release. Prospectively, the
+signed founder reset establishes a continuing lane for qualifying
+founder-controlled work after the machine-readable contract and publication
+prerequisites are enforced. It is not independent approval and does not open
+external contributor publication. The lane is origin-scoped rather than tied
+to solo-maintainer mode and may continue after reviewer mode exists.
 
 ## Configuration and reconciliation
 
@@ -67,20 +70,37 @@ GitHub has no transaction spanning repository, ruleset, and environment APIs.
 An API failure can therefore leave a safe partial application; correct the
 reported condition and rerun the same command. The operations are idempotent.
 
-### Solo-maintainer limitation and transition
+### Solo-maintainer controls and continuing founder lane
 
 GitHub prevents a deployment initiator from self-approving when
 `prevent_self_review` is enabled. With only Joseph available, requiring a
 reviewer and preventing self-review would deadlock every release. Therefore
 `--solo-maintainer` requires pull requests and checks but zero human approvals,
 and configures no required deployment reviewer. That is a bootstrap exception,
-not independent review. It permits the first-party Room Zero rollout only;
-external contributor publication remains closed and no audit record may claim
-a second-person approval.
+not independent review. Room Zero used the initial exception. The continuing
+asset lane is governed by
+[`FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md`](FOUNDER-BOOTSTRAP-GOVERNANCE-RESET.md)
+and permits only candidates that pass the enforced
+`first-party-founder-controlled` lane. External contributor publication remains
+closed and no audit record may claim a second-person approval.
 
-As soon as a second qualified operator exists, add their exact `@LOGIN` to the
-global and protected-path entries in `.github/CODEOWNERS`, then inspect and
-apply reviewer mode:
+The reset alone is not a publication gate. Until protected `main` enforces the
+lane verdict, generated-reference policy when applicable, quarantine receipt,
+category profile, append-only ID registration, founder attestation, public
+assessment-mode disclosure, founder release checklist, and auditable withdrawal
+path, no new non-Room-Zero asset may use the lane.
+
+The current reconciler's `--reviewer` mode is a legacy global-review plan: it
+requires a human approval on every pull request and protected deployment. That
+is useful for an all-reviewed repository but would also require a second person
+on founder assets. It is therefore not the final dual-lane configuration.
+
+When a second qualified operator exists, add their exact `@LOGIN` to the global
+and protected-path entries in `.github/CODEOWNERS`. Before using that event to
+open external intake, first land a lane-aware required check and protected
+publication design. The following commands may then be used to inspect the
+current legacy plan, but must not be applied as the final configuration while
+the continuing founder lane is expected to operate without a second approval:
 
 ```sh
 tools/configure-github-protection.sh \
@@ -93,11 +113,18 @@ tools/configure-github-protection.sh \
   --apply
 ```
 
-Reviewer mode requires one approval, code-owner review, dismissal of stale
-reviews, approval after the latest push, and environment approval by either the
-initial maintainer or second reviewer with self-review prevented. Only one
-eligible reviewer is required by GitHub, so project policy still requires two
-distinct people for external asset publication.
+That legacy reviewer mode requires one approval, code-owner review, dismissal
+of stale reviews, approval after the latest push, and environment approval by
+either the initial maintainer or second reviewer with self-review prevented.
+Only one eligible reviewer is required by GitHub, so project policy still
+requires two distinct people for external asset publication.
+
+The intended dual-lane mode keeps signatures, pull requests, immutable history,
+and required checks global. A protected governance check evaluates the lane and
+requires external review records only for external candidates. Protected asset
+publication similarly separates an owner-operated founder path from the
+non-initiating approval required for external assets. Policy and software
+changes retain the review rule appropriate to their change class.
 
 GitHub documents tag restrictions as repository
 [rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets).
@@ -134,9 +161,12 @@ Advanced Security capability.
 
 ## Protected environments
 
-The reconciler creates or updates four GitHub environments. In reviewer mode,
-each requires a non-initiating approval; in solo mode, each intentionally has no
-required reviewer for the bootstrap reason above.
+The reconciler currently creates or updates four GitHub environments. In its
+legacy reviewer mode, each requires a non-initiating approval; in solo mode,
+each intentionally has no required reviewer for the bootstrap reason above.
+The founder asset path required before first use must preserve equally strict
+ref, signature, candidate, and credential controls without falsely recording a
+human approval.
 
 ### `release`
 
@@ -184,6 +214,13 @@ for administrator bypass. Once a second operator exists, disable administrator
 bypass for all four environments in the GitHub UI and record that check in the
 release log. Do not enable this in solo mode: it does not manufacture an
 independent reviewer and can deadlock the only operator.
+
+Before any reviewer configuration is used to open external asset intake,
+implement the lane-aware required check and protected publication paths above.
+They must require the external lane's distinct human roles without requiring a
+second-person approval for an eligible founder asset. A global approval rule
+that accidentally blocks the continuing founder lane is not the final
+dual-lane configuration.
 
 After applying either mode, retain the script's readback and independently
 audit the controls with an administrator-authenticated GitHub CLI session:
@@ -303,8 +340,8 @@ For every version after bootstrap:
 2. independently verify its checksums and GitHub attestations;
 3. dispatch `Publish packages` on that same tag with the candidate run ID and
    exact version;
-4. in reviewer mode, approve the `npm` and `pypi` environments independently
-   (or record the first-party solo-bootstrap exception); and
+4. apply the package release approval mode actually configured and record
+   whether the operation was independent or owner-operated; and
 5. install the exact published versions from clean temporary projects before
    recording the release complete.
 

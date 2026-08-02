@@ -14,6 +14,11 @@ Describe the result, the reason for it, and the public behavior that changes.
 Complete this section for an asset pull request. Otherwise write “not applicable.”
 
 - Asset reference: `asset_id@version`
+- Publication lane: external / `first-party-founder-controlled` / not applicable
+- Creation mode: manual Blender / procedural Blender / tool-assisted Blender / not applicable
+- Governing policy or decision ID and SHA-256:
+- Assessment mode: independent review / founder self-assessment / not applicable
+- Independent human review: `true` / `false` / not applicable
 - Quarantine upload/submission ID:
 - Declared `source.blend` SHA-256:
 - Origin: direct original work / separately approved exception
@@ -44,7 +49,8 @@ attestation required by the contribution pipeline.
 - [ ] No credential, private staging URL, personal contact detail, or hostile
       test asset is included in this pull request.
 
-## Reviewer notes
+## Assessment notes
 
 Call out manual visual checks, provenance questions, residual risks, and any
-follow-up work that is intentionally outside this pull request.
+follow-up work that is intentionally outside this pull request. Founder-lane
+records must state that founder self-assessment is not independent human review.
