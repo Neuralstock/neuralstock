@@ -36,6 +36,13 @@ can expose them individually. See
 [`docs/ASSET-LIFECYCLE.md`](docs/ASSET-LIFECYCLE.md) for the staging,
 evaluation, publication, and discovery flow.
 
+Joseph's ongoing production work, including models beyond Foundation 50, is
+tracked in
+[`Neuralstock/neuralstock-model-creation`](https://github.com/Neuralstock/neuralstock-model-creation).
+That repository produces machine-checked, attested delivery envelopes but
+cannot declare an asset accepted or publish it independently of this canonical
+repository.
+
 Use a stable lower-snake-case asset ID such as `procedural_crate_01`. Versions
 use semantic versioning and are immutable after publication.
 

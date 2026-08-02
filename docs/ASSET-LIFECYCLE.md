@@ -46,12 +46,18 @@ collection.
 
 ## Repository and storage boundaries
 
-### `neuralstock-model-creation`
+### [`neuralstock-model-creation`](https://github.com/Neuralstock/neuralstock-model-creation)
 
 The creation repository is the workshop and production queue. It may contain
 roadmaps, reference packets, Blender generator scripts, iteration notes, local
 render comparisons, and candidate manifests. An asset in this repository is
 not accepted merely because it exists there.
+
+Its protected `main` requires signed pull-request history and a machine boundary
+check with zero required human approvals. A delivery workflow emits only an
+attested compact envelope after the workshop record reaches `delivery_ready`;
+canonical ingestion must independently verify that envelope, its exact commit,
+and all quarantine and policy receipts before acceptance.
 
 Large candidate files should enter private immutable quarantine storage through
 a trusted upload path instead of accumulating in Git history.
