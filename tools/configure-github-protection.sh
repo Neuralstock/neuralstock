@@ -302,10 +302,17 @@ api \
   "repos/$repository/branches/main/protection" \
   --input "$temporary_root/main-protection.json" >/dev/null
 
-if ! api "repos/$repository/branches/main/protection/required_signatures" >/dev/null 2>&1; then
+required_signatures_json=$(api \
+  "repos/$repository/branches/main/protection/required_signatures")
+if printf '%s' "$required_signatures_json" | jq -e '.enabled == true' >/dev/null; then
+  :
+elif printf '%s' "$required_signatures_json" | jq -e '.enabled == false' >/dev/null; then
   api \
     --method POST \
     "repos/$repository/branches/main/protection/required_signatures" >/dev/null
+else
+  >&2 echo "GitHub returned an invalid required-signatures state"
+  exit 65
 fi
 
 jq -n \
@@ -428,6 +435,12 @@ configure_environment pypi tag:v\*
 configure_environment production branch:main tag:v\*
 
 api "repos/$repository/branches/main/protection" >/dev/null
+required_signatures_json=$(api \
+  "repos/$repository/branches/main/protection/required_signatures")
+printf '%s' "$required_signatures_json" | jq -e '.enabled == true' >/dev/null || {
+  >&2 echo "signed commits were not required on main"
+  exit 65
+}
 immutable_releases_json=$(api "repos/$repository/immutable-releases")
 printf '%s' "$immutable_releases_json" | jq -e '.enabled == true' >/dev/null || {
   >&2 echo "repository release immutability was not enabled"
