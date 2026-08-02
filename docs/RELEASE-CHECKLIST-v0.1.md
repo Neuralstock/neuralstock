@@ -258,7 +258,7 @@ This was a separate UI check from the API readback, not second-person review.
 
 ## 9. Closeout
 
-- [x] Scheduled production health passes after caches settle.
+- [x] A post-deployment `Production health` run passes after caches settle.
 - [x] Release record links the source commit, candidate workflow, attestation,
       draft, finalizer, immutable release attestation, production deployment,
       registry revision, and snapshot lock evidence.

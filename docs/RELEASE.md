@@ -289,7 +289,7 @@ The canonical release produced:
   exact distributions passed clean install and import checks.
 
 The authoritative workflow identities, artifact checksums, lock readbacks,
-publication chronology, and accepted limitations are recorded in
+publication chronology, and documented limitations are recorded in
 [`docs/releases/v0.1.0.md`](releases/v0.1.0.md).
 
 ### Historical 1.0.0 preview evidence
