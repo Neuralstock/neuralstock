@@ -304,7 +304,15 @@ def _is_bucket_policy_lock(error: Exception) -> bool:
     status = metadata.get("HTTPStatusCode") if isinstance(metadata, Mapping) else None
     error_detail = response.get("Error")
     code = error_detail.get("Code") if isinstance(error_detail, Mapping) else None
-    return status == 403 and str(code) in {"10069", "ObjectLockedByBucketPolicy"}
+    if str(code) not in {"10069", "ObjectLockedByBucketPolicy"}:
+        return False
+    # Cloudflare's S3 compatibility layer has returned this exact lock code
+    # with more than one client-error status.  The fallback remains fail closed:
+    # it accepts only a 4xx lock response (or an SDK response without a status),
+    # then HEADs and downloads the existing object to verify its exact bytes.
+    return status is None or (
+        isinstance(status, int) and not isinstance(status, bool) and 400 <= status < 500
+    )
 
 
 def _verify_local_item(item: R2UploadItem) -> None:

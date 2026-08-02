@@ -33,10 +33,10 @@ class PreconditionFailed(Exception):
 
 
 class ObjectLockedByBucketPolicy(Exception):
-    def __init__(self, code: str = "10069") -> None:
+    def __init__(self, code: str = "10069", status: int | None = 403) -> None:
         super().__init__("the object is locked by the bucket policy")
         self.response = {
-            "ResponseMetadata": {"HTTPStatusCode": 403},
+            "ResponseMetadata": ({"HTTPStatusCode": status} if status is not None else {}),
             "Error": {"Code": code},
         }
 
@@ -291,10 +291,19 @@ def test_existing_graph_object_still_requires_integrity_metadata(tmp_path: Path)
     assert not any(call[1] in {"registry.json", "snapshots/latest.json"} for call in client.calls)
 
 
-@pytest.mark.parametrize("lock_code", ["10069", "ObjectLockedByBucketPolicy"])
+@pytest.mark.parametrize(
+    ("lock_code", "lock_status"),
+    [
+        ("10069", 403),
+        ("ObjectLockedByBucketPolicy", 400),
+        ("ObjectLockedByBucketPolicy", 409),
+        ("ObjectLockedByBucketPolicy", None),
+    ],
+)
 def test_bucket_locked_existing_graph_is_downloaded_and_verified(
     tmp_path: Path,
     lock_code: str,
+    lock_status: int | None,
 ) -> None:
     release = _static_release(tmp_path)
     plan = build_upload_plan(release)
@@ -302,7 +311,7 @@ def test_bucket_locked_existing_graph_is_downloaded_and_verified(
         item for item in plan.items if item.immutable and not item.verify_existing_bytes
     )
     client = FakeR2Client()
-    client.existing_error = lambda: ObjectLockedByBucketPolicy(lock_code)
+    client.existing_error = lambda: ObjectLockedByBucketPolicy(lock_code, lock_status)
     client.objects[("assets", graph_object.key)] = {
         "Body": graph_object.source_path.read_bytes(),
         "Metadata": {},
@@ -315,6 +324,27 @@ def test_bucket_locked_existing_graph_is_downloaded_and_verified(
     assert graph_object.key in result.already_present
     assert ("head", graph_object.key) in [(action, key) for action, key, _ in client.calls]
     assert ("get", graph_object.key) in [(action, key) for action, key, _ in client.calls]
+
+
+def test_bucket_lock_code_on_server_error_is_not_treated_as_existing(
+    tmp_path: Path,
+) -> None:
+    release = _static_release(tmp_path)
+    plan = build_upload_plan(release)
+    first = plan.items[0]
+    client = FakeR2Client()
+    client.existing_error = lambda: ObjectLockedByBucketPolicy("ObjectLockedByBucketPolicy", 500)
+    client.objects[("assets", first.key)] = {
+        "Body": first.source_path.read_bytes(),
+        "Metadata": {"neuralstock-sha256": first.sha256},
+        "ContentType": first.content_type,
+        "CacheControl": first.cache_control,
+    }
+
+    with pytest.raises(ObjectLockedByBucketPolicy):
+        execute_upload_plan(plan, bucket="assets", client=client)
+
+    assert not any(call[0] in {"head", "get"} for call in client.calls)
 
 
 def test_bucket_locked_existing_graph_must_match_downloaded_bytes(tmp_path: Path) -> None:

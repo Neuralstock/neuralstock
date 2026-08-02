@@ -127,6 +127,13 @@ def test_workflows_preserve_retry_and_release_boundary_guards() -> None:
     assert shared_group in finalize_workflow
     assert "release_mode=immutable-recovery" in finalize_workflow
     assert "attestations: read" in deploy_workflow
+    assert "id: release_source" in deploy_workflow
+    assert 'tools/verify-release-tag.sh "$RELEASE_VERSION" "$release_commit"' in deploy_workflow
+    assert 'test "$GITHUB_SHA" = "$controller_main"' in deploy_workflow
+    assert 'test "$GITHUB_SHA" = "$release_commit"' in deploy_workflow
+    assert 'test "$run_sha" = "$RELEASE_COMMIT"' in deploy_workflow
+    assert "steps.release_source.outputs.commit" in deploy_workflow
+    assert "jq -r .source_commit dist/release-candidate/release-metadata.json" in deploy_workflow
 
     step_start = finalize_workflow.index(
         "- name: Re-verify and publish the draft or recover immutable state"
