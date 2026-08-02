@@ -87,6 +87,13 @@ limit. It does not open external intake or waive any publication gate, and no
 new non-Room-Zero asset may publish until the lane's machine-readable
 prerequisites are enforced.
 
+Ongoing model production lives in the separate
+[`Neuralstock/neuralstock-model-creation`](https://github.com/Neuralstock/neuralstock-model-creation)
+workshop. It is the continuing funnel for Foundation 50 and later rolling
+collections, not a second registry. Workshop status never implies acceptance;
+successful candidates are promoted by exact hash into this canonical public
+registry and its individual asset downloads.
+
 The canonical Room Zero graph is published to the `neuralstock-public`
 Cloudflare R2 bucket as asset version 1.0.1 and registry revision
 `744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`.
