@@ -10,6 +10,7 @@ import {
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { fetchPublicAsset } from "./asset-fetch.js";
 import { boxFromMetadata, dimensionsLabel, frameBounds } from "./scene/metadata.js";
 import { MetadataOverlays } from "./scene/overlays.js";
 
@@ -136,7 +137,10 @@ export class RoomZeroViewer {
   async start(registryUrl: string, initialAsset?: string): Promise<void> {
     this.setStatus(`Loading registry from ${registryUrl}…`);
     try {
-      this.registry = await loadRegistry(registryUrl, { integrity: "strict" });
+      this.registry = await loadRegistry(registryUrl, {
+        fetch: fetchPublicAsset,
+        integrity: "strict",
+      });
       this.entries = searchAssets(this.registry, { limit: 1_000 });
     } catch (error) {
       this.showEmpty("Registry unavailable", "The empty room remains usable while metadata is fixed.");

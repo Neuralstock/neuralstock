@@ -333,6 +333,14 @@ compare the live `Content-Security-Policy` with
 Cloudflare Insights beacon being blocked by `script-src 'self'` affects
 telemetry only and is not evidence of an asset failure.
 
+The website sends requests to `assets.neuralstock.ai` through a stable
+`ns-response-policy` cache revision defined in
+`examples/room-zero/src/asset-fetch.ts`. This is a response-header migration
+key, not an artifact version: downloaded bytes still have to match the
+manifest's exact length and SHA-256. Bump it only when previously cached
+immutable responses must be replaced after a public response-policy change;
+do not use it for ordinary asset releases.
+
 ### Asset CORS failure with valid immutable bytes
 
 First fetch each reported object with `Origin: https://neuralstock.ai` and
