@@ -69,8 +69,8 @@ GitHub rollout protection plan for $repository:
 - required CI/security contexts and pull requests;
 - active v* tag ruleset restricting create, move, and delete to @$maintainer_login;
 - repository release immutability enabled and read back before any release;
-- release, npm, and pypi environments allow only v* tags;
-- production allows only branch main or v* tags;
+- release and production allow only branch main or v* tags;
+- npm and pypi allow only v* tags;
 - review mode: $review_summary.
 EOF
 
@@ -226,7 +226,7 @@ preflight_environment() {
 }
 
 environments_json=$(api "repos/$repository/environments?per_page=100")
-preflight_environment release tag:v\*
+preflight_environment release branch:main tag:v\*
 preflight_environment npm tag:v\*
 preflight_environment pypi tag:v\*
 preflight_environment production branch:main tag:v\*
@@ -429,7 +429,7 @@ configure_environment() {
   done
 }
 
-configure_environment release tag:v\*
+configure_environment release branch:main tag:v\*
 configure_environment npm tag:v\*
 configure_environment pypi tag:v\*
 configure_environment production branch:main tag:v\*

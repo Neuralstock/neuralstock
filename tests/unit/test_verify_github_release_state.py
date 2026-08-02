@@ -126,6 +126,13 @@ def test_workflows_preserve_retry_and_release_boundary_guards() -> None:
     assert shared_group in release_workflow
     assert shared_group in finalize_workflow
     assert "release_mode=immutable-recovery" in finalize_workflow
+    assert "release_commit:" in finalize_workflow
+    assert 'tools/verify-release-tag.sh "$RELEASE_VERSION" "$RELEASE_COMMIT"' in finalize_workflow
+    assert 'test "$GITHUB_SHA" = "$controller_main"' in finalize_workflow
+    assert 'test "$GITHUB_SHA" = "$RELEASE_COMMIT"' in finalize_workflow
+    assert 'test "$RELEASE_COMMIT" = "$controller_main"' in finalize_workflow
+    assert '--source-ref "refs/tags/v$RELEASE_VERSION"' in finalize_workflow
+    assert '--source-digest "$RELEASE_COMMIT"' in finalize_workflow
     assert "attestations: read" in deploy_workflow
     assert "id: release_source" in deploy_workflow
     assert 'tools/verify-release-tag.sh "$RELEASE_VERSION" "$release_commit"' in deploy_workflow
@@ -142,12 +149,13 @@ def test_workflows_preserve_retry_and_release_boundary_guards() -> None:
         "- name: Verify immutable state and GitHub release attestation", step_start
     )
     publish_step = finalize_workflow[step_start:step_end]
-    tag_check = publish_step.index("tools/verify-release-tag.sh")
-    draft_refetch = publish_step.index(">dist-prepublish-release.json", tag_check)
+    draft_refetch = publish_step.index(">dist-prepublish-release.json")
     draft_verify = publish_step.index("--state draft", draft_refetch)
-    publication = publish_step.index("--method PATCH", draft_verify)
+    tag_check = publish_step.index("tools/verify-release-tag.sh", draft_verify)
+    controller_recheck = publish_step.index('test "$GITHUB_SHA" = "$controller_main"', tag_check)
+    publication = publish_step.index("--method PATCH", controller_recheck)
 
-    assert tag_check < draft_refetch < draft_verify < publication
+    assert draft_refetch < draft_verify < tag_check < controller_recheck < publication
     assert publish_step.index("immutable-recovery)") > publication
     assert publish_step.index("--state immutable") > publication
 

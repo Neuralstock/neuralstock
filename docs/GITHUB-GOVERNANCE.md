@@ -95,9 +95,11 @@ adds, replaces, or deletes an asset after finalization.
 The GitHub deployment-policy list response may omit whether an existing pattern
 is a branch or tag rule. The reconciler sends the explicit type when creating a
 rule but cannot prove that type on every later readback. Inspect the four
-environment policies in the GitHub UI after first application. The release and
-package workflows independently reject non-tag refs; the production workflow
-independently accepts only branch `main` or tag `v<requested-version>`.
+environment policies in the GitHub UI after first application. Candidate and
+package workflows independently reject non-tag refs. The protected finalizer
+and production workflow independently accept only the exact current branch
+`main` or tag `v<requested-version>`, while binding release content and
+attestations to the separately supplied, signed tag commit.
 
 ## Required checks
 
@@ -121,7 +123,10 @@ required reviewer for the bootstrap reason above.
 ### `release`
 
 - Require a non-initiating release-operator reviewer in reviewer mode.
-- Select only tags matching `v*` as permitted deployment refs.
+- Select only branch `main` and tags matching `v*` as permitted deployment
+  refs. The finalizer accepts `main` only when its checked-out commit is the
+  freshly read protected-main head, and still requires the exact signed-tag
+  commit as an explicit input.
 - Do not add Cloudflare or package-registry credentials.
 - Store `NEURALSTOCK_GITHUB_ADMIN_READ_TOKEN` only in this environment. It must
   be a fine-grained token restricted to `Neuralstock/neuralstock` with read-only
@@ -228,7 +233,7 @@ green status or a caller-supplied hash alone is not lock evidence.
 | `Package candidate` | Tag or manual | GitHub attestation and temporary artifact; no npm/PyPI publication |
 | `Publish packages` | Manual on a protected tag | OIDC publication to selected npm/PyPI registries |
 | `Release candidate` | Manual on a protected tag | Attestation, temporary artifact, and exact five-asset draft GitHub Release |
-| `Finalize release` | Manual on a protected tag and protected environment | Verifies the candidate and R2 evidence, then publishes the draft once as an immutable six-asset release |
+| `Finalize release` | Manual on exact current protected `main` or the protected tag, in the protected environment | Binds the controller to protected main and all release content to the supplied signed-tag commit, then verifies the candidate and R2 evidence and publishes the draft once as an immutable six-asset release |
 | `Production deploy` | Manual, protected environment | Phase A: immutable R2 objects only; Phase B: aliases, canonical host rule, and Cloudflare Pages only after the immutable GitHub Release verifies |
 | `Production health` | Schedule or manual | No |
 

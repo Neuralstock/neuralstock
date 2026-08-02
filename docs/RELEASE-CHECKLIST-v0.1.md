@@ -41,8 +41,8 @@ No external contributor asset may use that exception.
       linear history, conversation resolution, and blocks force-push/deletion.
 - [ ] The active `neuralstock-release-tags` ruleset covers `refs/tags/v*` and
       restricts creation, movement, and deletion to `@bighippoman`.
-- [ ] `release`, `npm`, and `pypi` allow only tag pattern `v*`; `production`
-      allows only branch `main` and tag pattern `v*`.
+- [ ] `release` and `production` allow only branch `main` and tag pattern `v*`;
+      `npm` and `pypi` allow only tag pattern `v*`.
 - [ ] The environment policy types were inspected in the GitHub UI because the
       REST list response may omit whether an existing pattern is a branch or tag.
 - [ ] The applied protection mode and exact reconciler command are in the release
@@ -207,10 +207,11 @@ Historical indefinite locks must remain present and retain their original names:
       `neuralstock-r2-release-lock-<revision>.json`; confirm that name is absent
       from draft release `v0.1.0`, upload it once without `--clobber`, and record
       its SHA-256.
-- [ ] Dispatch `Finalize release` from the same signed tag with that revision and
-      SHA-256. It accepts exactly five attested candidate assets plus this one
-      evidence file, verifies candidate and lock content, publishes once, and
-      reads back `immutable: true`.
+- [ ] Dispatch `Finalize release` from exact current protected `main` (or the
+      same signed tag before main advances) with the signed-tag commit, revision,
+      and SHA-256. It accepts exactly five attested candidate assets plus this
+      one evidence file, verifies candidate and lock content, publishes once,
+      and reads back `immutable: true`.
 - [ ] `gh release verify v0.1.0` and `gh release verify-asset` succeed for all six
       local files. Phase B must retrieve the exact immutable evidence asset.
 - [ ] The Cloudflare dashboard independently shows all three exact prefixes and
