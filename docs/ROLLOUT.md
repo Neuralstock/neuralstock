@@ -14,9 +14,11 @@ after measured discovery or coordination needs justify them.
 
 ## Eight rollout-critical findings
 
-1. **The public workshop must be made real.** The repository needs an
-   authenticated initial history, public remote, protected `main`, review
-   ownership, and protected release environments.
+1. **The public workshop foundation is now real.** The repository has an
+   authenticated history, public organization remote, protected `main`, review
+   ownership, protected release environments, and an immutable v0.1.0 release.
+   The remaining governance gap is a second qualified operator before external
+   contributor publication opens.
 2. **Source intake is not yet a contributor product.** Documentation references
    an upload flow, but a private quarantine upload receipt and generic
    per-asset runner are still required.
@@ -61,6 +63,10 @@ intake gate. Full R0 exit additionally requires reviewer mode, administrator
 bypass disabled for protected environments, and a dry-run pull request and
 deployment that cannot proceed without a non-initiating reviewer.
 
+Status at v0.1.0: the bootstrap gate is complete. Full R0 remains open only at
+the deliberately deferred second-operator boundary; no release record claims
+independent human approval.
+
 ### R1 — Reproducible candidate and deployment lane
 
 Deliver:
@@ -78,10 +84,15 @@ Deliver:
   commit, version, and registry revision; and
 - scheduled public health verification.
 
-Exit gate: two clean release-candidate runs from the same commit produce the
-same registry revision and release archive checksum; a candidate built from a
-different commit or revision is rejected by deployment; and clean consumers can
-install the exact tagged Python and npm versions from their public registries.
+v0.1.0 exit evidence: the candidate workflow performed two independent,
+isolated builds from the same accepted-source bytes and required every output
+to be byte-identical within that run. A separate job then independently
+verified the candidate checksums and GitHub attestations before deployment; it
+did not rely on a claimed second release-candidate workflow run. Deployment
+also binds and rejects mismatched source commit, tag, version, registry
+revision, checksums, and retention evidence. Clean consumers installed and
+imported the exact tagged Python and npm versions from their public registries.
+This evidence completes R1 without overstating the number of workflow runs.
 
 ### R2 — Single-asset quarantine intake
 

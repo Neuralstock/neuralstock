@@ -1,22 +1,40 @@
-# GitHub repository setup
+# GitHub repository governance
 
 The canonical repository is
 `https://github.com/Neuralstock/neuralstock`, owned by the `Neuralstock`
-organization. Transferring the empty bootstrap repository, pushing the initial
-history, changing account settings, and provisioning reviewers are intentional
-operator actions; repository files alone cannot perform them. The transfer must
-retain GitHub's redirect from the temporary personal-account location.
+organization. The bootstrap repository was transferred before release history
+was published, and GitHub retains the redirect from the temporary
+personal-account location.
 
-## Initial setup
+## Current v0.1.0 control state
 
-1. Transfer the empty public bootstrap repository to the `Neuralstock`
-   organization without changing its name, then verify the canonical URL and
-   the redirect from its temporary personal-account URL.
-2. Push a signed initial commit to `main`.
-3. Enable Issues, private vulnerability reporting, the dependency graph,
-   Dependabot alerts, and secret scanning with push protection.
-4. Run every required workflow once on `main` so all named check contexts exist.
-5. While Joseph Nordqvist is the only maintainer, inspect the bootstrap plan:
+The public repository uses pull-request-only, signed, linear `main` history,
+squash-only merges, five required checks, an active `v*` tag ruleset, and the
+protected `release`, `production`, `npm`, and `pypi` environments. Repository
+release immutability is enabled. The signed `v0.1.0` tag targets
+`6a0d8bb5696a24792c606128b016d2fcf3fad6ff`, and its exact six-asset GitHub
+Release is public and immutable.
+
+The controls were applied in the explicitly recorded solo-maintainer mode.
+That is sufficient for the first-party Room Zero release, but it is not
+independent approval and does not open external contributor publication. The
+reviewer-mode transition below remains mandatory before that boundary changes.
+
+## Configuration and reconciliation
+
+The deployed configuration was established with the following procedure. The
+protection commands remain its idempotent reconciliation path:
+
+1. The empty public bootstrap repository was transferred to the `Neuralstock`
+   organization without a rename; both the canonical URL and redirect from its
+   temporary personal-account URL were verified.
+2. Signed initial history was pushed to `main`.
+3. Issues, private vulnerability reporting, the dependency graph, Dependabot
+   alerts, and secret scanning with push protection were enabled.
+4. Every required workflow ran on `main`, establishing all named check
+   contexts.
+5. While Joseph Nordqvist remains the only maintainer, inspect the reconciled
+   solo-bootstrap plan with:
 
    ```sh
    tools/configure-github-protection.sh \
@@ -24,8 +42,8 @@ retain GitHub's redirect from the temporary personal-account location.
      --solo-maintainer
    ```
 
-6. Apply that exact plan only if the solo-maintainer limitation below is
-   accepted and recorded:
+6. Reapply that exact plan only while the recorded solo-maintainer limitation
+   below remains accepted:
 
    ```sh
    tools/configure-github-protection.sh \
@@ -263,28 +281,21 @@ These settings follow the registries' current
 [npm trusted-publisher](https://docs.npmjs.com/trusted-publishers/) and
 [PyPI trusted-publisher](https://docs.pypi.org/trusted-publishers/) contracts.
 
-Configure npm with those exact case-sensitive values and allow `npm publish`,
-not staged publication, for v0.1. The workflow requires Node 24 and npm 11.5.1
-or newer. After trusted publishing succeeds, set the package's publishing
-access to require two-factor authentication and disallow tokens.
+The npm publisher uses those exact case-sensitive values and direct
+`npm publish`; the workflow requires Node 24 and npm 11.5.1 or newer. The npm
+organization enforces 2FA, and `@neuralstock/client` requires 2FA for
+publication. Its initial `0.1.0` upload was the one necessary interactive
+bootstrap from the exact attested archive, SHA-256
+`c18fcf3f0b7f22d15a888d9c5cb0a42bfb350fa0f8b0592d33fb1984b5409ace`.
+Trusted publishing for `Neuralstock/neuralstock`, workflow
+`publish-packages.yml`, environment `npm`, was configured immediately after
+that namespace existed; later versions use the protected OIDC workflow.
 
-Configure a [PyPI pending publisher](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)
-with project name `neuralstock` and the
-exact identity above. A pending publisher can create the project on its first
-OIDC publication, so no PyPI API token is required. If the project already
-exists under the maintainer's control, configure the same identity in the
-project's Publishing settings instead.
-
-As of 2026-08-01, the npm organization `neuralstock` exists with owner `jnordq`
-and organization-wide 2FA enforcement, but `@neuralstock/client` has not yet
-been published. If npm requires an existing package before trusted publishing
-can be activated, Joseph Nordqvist performs the first upload interactively from
-the exact attested archive, immediately configures the trusted publisher, and
-removes any temporary automation token. Never copy a bootstrap token into
-GitHub. PyPI already has the pending publisher for project `neuralstock`, owner
-`Neuralstock`, repository `neuralstock`, workflow `publish-packages.yml`, and
-environment `pypi`; the project itself has not yet been published and should be
-created by that pending-publisher flow rather than a manual upload.
+PyPI project `neuralstock` was created by its pending trusted publisher and
+published `0.1.0` through GitHub OIDC. No PyPI API token was used. Clean
+Python 3.12 and npm consumer projects installed and imported the exact public
+versions successfully. No long-lived npm or PyPI publishing credential is
+stored in GitHub.
 
 For every version after bootstrap:
 

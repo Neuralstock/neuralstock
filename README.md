@@ -69,19 +69,24 @@ schemas over the network.
 
 ## Status
 
-The Room Zero v0.1 pilot is release-verified and published to the
-`neuralstock-public` Cloudflare R2 bucket. The active public artifact origin is
-`https://assets.neuralstock.ai`, `r2.dev` access is disabled, and the published
-Room Zero registry revision is
-`a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523`.
-That deployment is the infrastructure rehearsal, not the canonical package
-release. Its owned v0.1 schema/profile keys are immutable historical contracts
-and cannot receive the complete standalone MIT notices added before rollout.
-The canonical graph therefore uses a fresh, create-only
-`https://schemas.neuralstock.ai/v0.2/` namespace and matching v0.2 profile
-prefix. The migration requires a new verified 1.0.1 asset graph and registry
-revision while retaining every immutable 1.0.0 manifest, v0.1 contract byte,
-and exact CC0 attestation object; see
+NeuralStock v0.1.0 is public. The signed `v0.1.0` tag identifies commit
+`6a0d8bb5696a24792c606128b016d2fcf3fad6ff`; its
+[GitHub Release](https://github.com/Neuralstock/neuralstock/releases/tag/v0.1.0)
+is immutable and contains the five attested candidate files plus the
+independently read-back R2 retention evidence. The Python package is available
+as [`neuralstock==0.1.0`](https://pypi.org/project/neuralstock/0.1.0/) and the
+JavaScript client as
+[`@neuralstock/client@0.1.0`](https://www.npmjs.com/package/@neuralstock/client/v/0.1.0).
+
+The canonical Room Zero graph is published to the `neuralstock-public`
+Cloudflare R2 bucket as asset version 1.0.1 and registry revision
+`744accaa3f9efcd053d8e589b2bb7e966753b070004f7c78ef00c3431cbbe391`.
+The public artifact origin is `https://assets.neuralstock.ai`, the canonical
+contracts use the locked `https://schemas.neuralstock.ai/v0.2/` schema and
+profile namespaces, and `r2.dev` access is disabled. The earlier 1.0.0 graph,
+revision `a3e851194d092bf1a06452a62ae98ba8687462ea0cbca668a9b9cc2385768523`,
+its v0.1 contracts, and its CC0 evidence remain immutable historical records;
+they were not overwritten during promotion. See
 [the namespace decision](https://github.com/Neuralstock/neuralstock/blob/main/docs/NAMESPACE.md).
 Joseph Nordqvist is recorded as the individual CC0 dedicator for every Room
 Zero asset, with ownership or control of the inputs and authority to make the
@@ -99,7 +104,7 @@ procedural generators. All runtime files pass the Khronos validator without
 errors or warnings, all accepted-source rebuilds are byte-reproducible, and
 the real-release browser suite passes at desktop and narrow widths.
 
-The initial registry is a static downloadable snapshot. D1, Durable Objects,
+The v0.1.0 registry is a static downloadable snapshot. D1, Durable Objects,
 Queues, Workflows, Vectorize, and public hosted generation are deliberately
 deferred until the static pipeline proves useful.
 
