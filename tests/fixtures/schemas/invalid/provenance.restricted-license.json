@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/provenance.schema.json",
+  "schema_version": "0.2",
+  "document_type": "provenance",
+  "asset": {
+    "id": "procedural_crate_01",
+    "version": "1.0.0"
+  },
+  "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "license": "CC-BY-NC-4.0",
+  "dedication": {
+    "dedicator": "Fixture contributor",
+    "dedicator_type": "person",
+    "project": "NeuralStock Open Asset Engine",
+    "project_uri": "https://neuralstock.ai/",
+    "verification_uri": "https://neuralstock.ai/#mission",
+    "date": "2026-08-01",
+    "scope": "asset-and-bundled-dependencies",
+    "legal_code_uri": "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+  },
+  "origin": {
+    "kind": "original"
+  },
+  "contributors": [
+    {
+      "name": "Fixture contributor",
+      "roles": ["creator"]
+    }
+  ],
+  "dependencies": [],
+  "evidence": [
+    {
+      "kind": "author-attestation",
+      "uri": "evidence/attestation.md",
+      "captured_at": "2026-08-01T12:00:00Z"
+    }
+  ],
+  "rights_review": {
+    "trademark": "not-applicable",
+    "design_rights": "not-applicable",
+    "personality_rights": "not-applicable",
+    "notes": "No third-party rights identified."
+  },
+  "attestation": {
+    "accepted": true,
+    "statement_version": "1.0",
+    "submitted_at": "2026-08-01T12:00:00Z"
+  }
+}

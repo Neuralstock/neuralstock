@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "book_stack_01",
+  "version": "1.0.1",
+  "name": "Stack of books",
+  "description": "A compact stylized stack of books sized for desks, shelves, and other interior surfaces.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "e8ca8f92e35d93306d56452f72f4df208e05818bf22b7b52487c060277e81893"
+  },
+  "semantics": {
+    "categories": [
+      "decor",
+      "props"
+    ],
+    "tags": [
+      "book",
+      "reading",
+      "stack"
+    ],
+    "affordances": [
+      "pickup",
+      "stackable",
+      "support-surface"
+    ],
+    "placement": "surface"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_stack_base",
+    "ANCHOR_top_surface"
+  ]
+}

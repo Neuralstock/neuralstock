@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "stool_01",
+  "version": "1.0.1",
+  "name": "Wooden stool",
+  "description": "A compact wooden stool with a stable seat anchor for counters, desks, and casual seating areas.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "5280a7d07fe56720274a9b7aea940719d666a021950fde4a0431ec15fff3214c"
+  },
+  "semantics": {
+    "categories": [
+      "furniture",
+      "seating"
+    ],
+    "tags": [
+      "seat",
+      "stool",
+      "wooden"
+    ],
+    "affordances": [
+      "sit"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_seat_surface"
+  ]
+}

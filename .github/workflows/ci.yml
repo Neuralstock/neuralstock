@@ -1,0 +1,275 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-and-clients:
+    name: Contract and clients
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          package-manager-cache: false
+
+      - name: Install locked dependencies
+        run: |
+          uv sync --frozen --extra dev
+          pnpm install --frozen-lockfile
+
+      - name: Check Python
+        run: |
+          uv run --frozen ruff format --check blender src tests
+          uv run --frozen ruff check blender src tests
+          uv run --frozen pytest
+          sh -n tools/release-room-zero.sh
+
+      - name: Enforce the owned v0.2 schema namespace
+        run: |
+          if grep --recursive --line-number --fixed-strings \
+            'https://neuralstock.org/schemas/' \
+            schemas profiles catalog blender src tests packages; then
+            echo 'Unowned schema-domain reference found.' >&2
+            exit 1
+          fi
+          if grep --recursive --line-number --fixed-strings \
+            'https://schemas.neuralstock.ai/v0.1/' \
+            schemas profiles catalog blender src packages; then
+            echo 'Locked historical v0.1 schema reference found in canonical sources.' >&2
+            exit 1
+          fi
+          grep --recursive --quiet --fixed-strings \
+            'https://schemas.neuralstock.ai/v0.2/' \
+            schemas profiles catalog blender src tests packages
+
+      - name: Build the sdist and smoke-test its installed wheel
+        run: |
+          uv build --sdist --out-dir dist/sdist
+          sdist=$(find dist/sdist -name 'neuralstock-*.tar.gz' -print -quit)
+          test -n "$sdist"
+          source_parent=$(mktemp -d)
+          tar -xzf "$sdist" -C "$source_parent"
+          source_dir=$(find "$source_parent" -mindepth 1 -maxdepth 1 -type d -print -quit)
+          test -n "$source_dir"
+          test -f "$source_dir/LICENSE"
+          test -f "$source_dir/schemas/asset.schema.json"
+          test -f "$source_dir/profiles/web-v1.json"
+          (
+            cd "$source_dir"
+            uv build --wheel --out-dir "$GITHUB_WORKSPACE/dist/wheel"
+          )
+          wheel=$(find dist/wheel -name 'neuralstock-*.whl' -print -quit)
+          test -n "$wheel"
+          uv venv /tmp/neuralstock-wheel-venv
+          uv pip install --python /tmp/neuralstock-wheel-venv/bin/python "$wheel"
+          cd /tmp
+          /tmp/neuralstock-wheel-venv/bin/neuralstock validate \
+            --schema asset.intent \
+            "$GITHUB_WORKSPACE/tests/fixtures/schemas/valid/asset.intent.json"
+          /tmp/neuralstock-wheel-venv/bin/python - <<'PY'
+          import json
+          import struct
+          from pathlib import Path
+
+          from neuralstock.canonical import sha256_file
+          from neuralstock.package import GLTF_VALIDATOR_SCRIPT, run_gltf_validator
+          from neuralstock.schema import data_path
+
+          license_path = data_path("LICENSE")
+          assert license_path.is_file()
+          assert sha256_file(license_path) == "db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200"
+
+          document = json.dumps(
+              {"asset": {"version": "2.0"}, "scene": 0, "scenes": [{}]},
+              separators=(",", ":"),
+          ).encode()
+          document += b" " * (-len(document) % 4)
+          payload = struct.pack("<III", 0x46546C67, 2, 12 + 8 + len(document))
+          payload += struct.pack("<II", len(document), 0x4E4F534A) + document
+          model = Path("/tmp/neuralstock-wheel-smoke.glb")
+          model.write_bytes(payload)
+          report = run_gltf_validator(model)
+          assert report["issues"]["numErrors"] == 0
+          assert report["issues"]["numWarnings"] == 0
+          assert "site-packages" in str(GLTF_VALIDATOR_SCRIPT)
+          PY
+
+      - name: Check TypeScript
+        run: |
+          pnpm run bundle:gltf-validator
+          git diff --exit-code -- src/neuralstock/data/tools/validate-gltf.bundle.cjs
+          pnpm check
+          pnpm test
+          pnpm build
+          pnpm --filter @neuralstock/client pack --dry-run
+
+  blender-smoke:
+    name: Pinned Blender smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          package-manager-cache: false
+
+      - name: Install locked dependencies
+        run: |
+          uv sync --frozen --extra dev
+          pnpm install --frozen-lockfile
+
+      - name: Build pinned worker image
+        run: |
+          mkdir -p work
+          docker buildx create \
+            --name neuralstock-ci \
+            --driver docker-container \
+            --driver-opt image=moby/buildkit:v0.30.0@sha256:0168606be2315b7c807a03b3d8aa79beefdb31c98740cebdffdfeebf31190c9f \
+            --bootstrap
+          docker buildx build \
+            --builder neuralstock-ci \
+            --no-cache \
+            --provenance=false \
+            --build-arg SOURCE_DATE_EPOCH=1785542400 \
+            --platform linux/amd64 \
+            --file container/Dockerfile \
+            --tag neuralstock-blender:4.5.12 \
+            --metadata-file work/neuralstock-blender.metadata.json \
+            --output type=docker,dest=work/neuralstock-blender.docker.tar,rewrite-timestamp=true,compression=gzip,compression-level=6,oci-mediatypes=false \
+            .
+          docker load --input work/neuralstock-blender.docker.tar
+
+      - name: Reject unsafe Blender source features
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --tmpfs /tmp:rw,nosuid,nodev,size=2g \
+            --mount type=bind,src="$GITHUB_WORKSPACE",dst=/repo,readonly \
+            --entrypoint /opt/blender/blender \
+            neuralstock-blender:4.5.12 \
+            --background \
+            --factory-startup \
+            --disable-autoexec \
+            --python-exit-code 1 \
+            --python /repo/tests/blender/inspection_profile_smoke.py
+
+      - name: Verify pinned image identity
+        run: |
+          test "$(jq -r '."containerimage.digest"' work/neuralstock-blender.metadata.json)" = "$(jq -r .manifest_digest container/image.lock.json)"
+          test "$(jq -r '."containerimage.config.digest"' work/neuralstock-blender.metadata.json)" = "$(jq -r .config_digest container/image.lock.json)"
+          loaded_id=$(docker image inspect neuralstock-blender:4.5.12 --format '{{.Id}}')
+          test "$loaded_id" = "$(jq -r .manifest_digest container/image.lock.json)" || \
+            test "$loaded_id" = "$(jq -r .config_digest container/image.lock.json)"
+          test "$(docker image inspect neuralstock-blender:4.5.12 --format '{{.Created}}')" = "$(jq -r .created container/image.lock.json)"
+          test "$(docker image inspect neuralstock-blender:4.5.12 --format '{{.Architecture}}')" = amd64
+          test "$(docker image inspect neuralstock-blender:4.5.12 --format '{{index .Config.Labels "org.neuralstock.ubuntu.snapshot"}}')" = 20260731T000000Z
+          test "$(docker image inspect neuralstock-blender:4.5.12 --format '{{index .Config.Labels "org.neuralstock.blender.archive.sha256"}}')" = 95e3a2dfedba3bd32ca54fc355eac6b15a11986954ccb02815a07535d0120a25
+          test "$(docker image inspect neuralstock-blender:4.5.12 --format '{{index .Config.Labels "org.neuralstock.blender.source.sha256"}}')" = 9cb86825c95e4f0a33bfd41eb574426f2f69aa6c310497e289fdb54cc6482f1b
+          test "$(docker image inspect neuralstock-blender:4.5.12 --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}')" = 'MIT AND GPL-2.0-or-later AND LicenseRef-Blender-Third-Party AND LicenseRef-Ubuntu-Runtime-Packages'
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /bin/sh \
+            neuralstock-blender:4.5.12 \
+            -c 'test -f /usr/share/neuralstock/licenses/neuralstock-MIT.txt && test -f /usr/share/neuralstock/licenses/THIRD_PARTY_NOTICES.md && test -f /usr/share/doc/ca-certificates/copyright && test -f /opt/blender/copyright.txt && test -f /opt/blender/license/license.md && test -f /opt/blender/license/licenses.json'
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /opt/blender/blender \
+            neuralstock-blender:4.5.12 --version | grep --fixed-strings 'Blender 4.5.12 LTS'
+
+      - name: Reproduce and publish the complete Room Zero collection
+        run: |
+          sh tools/release-room-zero.sh assets/room-zero work/ci-room-zero dist/release
+          test \
+            "$(jq -r '."containerimage.digest"' work/neuralstock-blender.metadata.json)" = \
+            "$(jq -r '."containerimage.digest"' work/ci-room-zero/neuralstock-blender.metadata.json)"
+
+      - name: Validate complete collection evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          work = Path("work/ci-room-zero")
+          packages = sorted((work / "packages").glob("*/build-receipt.json"))
+          inspections = sorted((work / "build-a").glob("*/inspection.json"))
+          validators = sorted((work / "packages").glob("*/gltf-validation.json"))
+          assert len(packages) == len(inspections) == len(validators) == 15
+
+          for path in packages:
+              receipt = json.loads(path.read_text())
+              assert receipt["reproducibility"] == {
+                  "allowed_nondeterminism": [],
+                  "comparison_build_id": receipt["reproducibility"]["comparison_build_id"],
+                  "status": "reproduced",
+              }
+              assert receipt["validation"]["status"] == "pass"
+
+          for path in inspections:
+              inspection = json.loads(path.read_text())
+              assert inspection["profile_validation"]["status"] == "pass"
+              assert all(
+                  check["status"] == "pass"
+                  for check in inspection["profile_validation"]["checks"]
+              )
+
+          for path in validators:
+              issues = json.loads(path.read_text())["issues"]
+              assert issues["numErrors"] == issues["numWarnings"] == 0
+          PY
+          uv run --frozen neuralstock release verify --root dist/release
+          test "$(jq '.items | length > 0' work/ci-room-zero/r2-plan.json)" = true
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @neuralstock/room-zero exec playwright install --with-deps chromium
+
+      - name: Run the root test gate including real-release Playwright
+        env:
+          NEURALSTOCK_E2E_ASSET: procedural_crate_01@1.0.1
+        run: pnpm test

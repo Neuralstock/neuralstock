@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "cabinet_01",
+  "version": "1.0.1",
+  "name": "Two-door cabinet",
+  "description": "A freestanding two-door storage cabinet with top and handle anchors for furnished interiors.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "733c9fd519a0a720d841e9b75c6f603e57ed77f773ade6f6e3fe252ba240bc79"
+  },
+  "semantics": {
+    "categories": [
+      "furniture",
+      "storage"
+    ],
+    "tags": [
+      "cabinet",
+      "cupboard",
+      "two-door"
+    ],
+    "affordances": [
+      "storage",
+      "support-surface"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_door_pull_left",
+    "ANCHOR_door_pull_right",
+    "ANCHOR_top_surface"
+  ]
+}

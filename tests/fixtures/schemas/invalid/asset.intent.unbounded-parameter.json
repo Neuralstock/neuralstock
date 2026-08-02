@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "procedural_crate_01",
+  "version": "1.0.0",
+  "name": "Procedural shipping crate",
+  "description": "An intentionally invalid intent whose numeric input has no maximum bound.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "semantics": {
+    "categories": ["props"],
+    "tags": ["crate"],
+    "affordances": ["stackable"],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "CrateGenerator",
+    "parameters": {
+      "width_meters": {
+        "type": "float",
+        "default": 0.8,
+        "minimum": 0.4,
+        "unit": "meter",
+        "agent_safe": true
+      }
+    }
+  },
+  "required_anchors": ["ANCHOR_top_center"]
+}

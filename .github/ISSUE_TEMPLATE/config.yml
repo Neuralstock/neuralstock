@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/Neuralstock/neuralstock/security/advisories/new
+    about: Do not attach hostile Blender files or disclose exploitable details in a public issue.
+  - name: Read the contribution policy
+    url: https://github.com/Neuralstock/neuralstock/blob/main/CONTRIBUTING.md
+    about: Check the current asset scope, provenance requirements, and validation gates first.

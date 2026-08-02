@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "monitor_01",
+  "version": "1.0.1",
+  "name": "Desktop monitor",
+  "description": "A freestanding desktop monitor with stable screen-center and base anchors for workstation scenes.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "90686fb3c5852228639192a32ae1255c5ee34ede47cfffbe400be20c03c570e9"
+  },
+  "semantics": {
+    "categories": [
+      "electronics",
+      "props"
+    ],
+    "tags": [
+      "computer-monitor",
+      "display",
+      "screen"
+    ],
+    "affordances": [
+      "display-surface",
+      "movable"
+    ],
+    "placement": "surface"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_base_center",
+    "ANCHOR_screen_center"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/discovery.schema.json",
+  "title": "NeuralStock public discovery document v0.2",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "document_type",
+    "site",
+    "asset_origin",
+    "schema_origin",
+    "registry",
+    "license_policy",
+    "clients"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.neuralstock.ai/v0.2/discovery.schema.json"
+    },
+    "schema_version": { "const": "0.2" },
+    "document_type": { "const": "discovery" },
+    "site": { "type": "string", "format": "uri", "pattern": "/$" },
+    "asset_origin": { "type": "string", "format": "uri" },
+    "schema_origin": { "type": "string", "format": "uri" },
+    "registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical", "latest_snapshot", "immutable_snapshot_template"],
+      "properties": {
+        "canonical": { "type": "string", "format": "uri" },
+        "latest_snapshot": { "type": "string", "format": "uri" },
+        "immutable_snapshot_template": {
+          "type": "string",
+          "format": "uri-template",
+          "pattern": "\\{revision\\}"
+        }
+      }
+    },
+    "license_policy": {
+      "type": "array",
+      "prefixItems": [{ "const": "CC0-1.0" }],
+      "items": false,
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "clients": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["npm", "python"],
+      "properties": {
+        "npm": { "type": "string", "minLength": 1 },
+        "python": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

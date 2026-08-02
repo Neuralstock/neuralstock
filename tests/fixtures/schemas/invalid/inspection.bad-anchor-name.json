@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/inspection.schema.json",
+  "schema_version": "0.2",
+  "document_type": "inspection",
+  "generated": true,
+  "asset": {
+    "id": "procedural_crate_01",
+    "version": "1.0.0"
+  },
+  "generated_at": "2026-08-01T12:05:00Z",
+  "generator": {
+    "tool": "neuralstock-inspect",
+    "version": "0.1.0"
+  },
+  "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target_profile": "web-v1",
+  "coordinate_system": {
+    "unit": "meter",
+    "meters_per_unit": 1,
+    "up_axis": "Z",
+    "forward_axis": "-Y",
+    "handedness": "right",
+    "space": "asset-local"
+  },
+  "bounds_m": {
+    "minimum": [-0.4, -0.3, 0],
+    "maximum": [0.4, 0.3, 0.6],
+    "dimensions": [0.8, 0.6, 0.6]
+  },
+  "origin": {
+    "policy": "ground-center-of-evaluated-bounds",
+    "position_m": [0, 0, 0]
+  },
+  "geometry": {
+    "mesh_count": 1,
+    "vertex_count": 1240,
+    "triangle_count": 2380,
+    "primitive_count": 1
+  },
+  "materials": {
+    "count": 1,
+    "names": ["Wood"]
+  },
+  "textures": {
+    "count": 0,
+    "total_bytes": 0,
+    "max_dimension_px": 0,
+    "all_packed": true,
+    "items": []
+  },
+  "anchors": [
+    {
+      "name": "top surface",
+      "position_m": [0, 0, 0.6],
+      "rotation_xyzw": [0, 0, 0, 1]
+    }
+  ],
+  "collisions": [],
+  "parameters": {
+    "node_group": null,
+    "inputs": {}
+  },
+  "gltf_validation": {
+    "validator_version": "2.0.0",
+    "status": "pass",
+    "errors": 0,
+    "warnings": 0
+  },
+  "profile_validation": {
+    "status": "fail",
+    "checks": [
+      {
+        "code": "web-v1.anchor-name",
+        "status": "fail",
+        "message": "Anchor name does not follow the required convention."
+      }
+    ]
+  }
+}

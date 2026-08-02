@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "procedural_crate_01",
+  "version": "1.0.1",
+  "name": "Procedural wooden crate",
+  "description": "A bounded procedural wooden shipping crate for storage, stacking, and warehouse scene dressing.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "65a622e0d4f32914f6e24a27aae3960af90c4e701df2fee051746bd7aa74d6e6"
+  },
+  "semantics": {
+    "categories": [
+      "props",
+      "storage"
+    ],
+    "tags": [
+      "crate",
+      "shipping",
+      "wooden"
+    ],
+    "affordances": [
+      "stackable",
+      "storage",
+      "support-surface"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "CrateGenerator",
+    "parameters": {
+      "depth_m": {
+        "agent_safe": true,
+        "default": 0.4,
+        "description": "Overall crate depth in meters.",
+        "label": "Depth",
+        "maximum": 1.5,
+        "minimum": 0.25,
+        "type": "float",
+        "unit": "meter"
+      },
+      "height_m": {
+        "agent_safe": true,
+        "default": 0.45,
+        "description": "Overall crate height in meters.",
+        "label": "Height",
+        "maximum": 2.0,
+        "minimum": 0.25,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 0.6,
+        "description": "Overall crate width in meters.",
+        "label": "Width",
+        "maximum": 2.0,
+        "minimum": 0.3,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_top_surface"
+  ]
+}

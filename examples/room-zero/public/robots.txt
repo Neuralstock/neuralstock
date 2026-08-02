@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://neuralstock.ai/sitemap.xml
+

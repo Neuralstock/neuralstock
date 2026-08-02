@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "collection": "room-zero",
+  "locked_publication": {
+    "asset_version": "1.0.0",
+    "state": "immutable-historical"
+  },
+  "current_publication": {
+    "asset_version": "1.0.1",
+    "schema_origin": "https://schemas.neuralstock.ai"
+  },
+  "accepted_source": {
+    "embedded_asset_version": "1.0.0",
+    "reuse": "byte-for-byte",
+    "reason": "The accepted Blender inputs are unchanged; 1.0.1 publishes owned-schema manifests at new immutable keys without overwriting the locked 1.0.0 publication.",
+    "sha256_by_asset": {
+      "book_stack_01": "e8ca8f92e35d93306d56452f72f4df208e05818bf22b7b52487c060277e81893",
+      "cabinet_01": "733c9fd519a0a720d841e9b75c6f603e57ed77f773ade6f6e3fe252ba240bc79",
+      "chair_01": "41cd843da9ce62a4670f7529e94c3597190fe2bf76d13b953b9576272c9be982",
+      "desk_lamp_01": "5a50db64e46801846cc7e8550141a6c9832bf0393f87aa315a0ee0e08dcdf6c2",
+      "monitor_01": "90686fb3c5852228639192a32ae1255c5ee34ede47cfffbe400be20c03c570e9",
+      "mug_01": "f6b8dea2b3e2af4d0657918216ad2f0a758295e5139cecb907a763d6b12ea207",
+      "potted_plant_01": "a71ce3b6e5f6888de7511bf3146527843efe6290200f288fc5214de9401a7983",
+      "procedural_crate_01": "65a622e0d4f32914f6e24a27aae3960af90c4e701df2fee051746bd7aa74d6e6",
+      "procedural_table_01": "5dd99de14fccb020d9312dcedca7ff9f8d91667abadce06815a4a76292c6d17b",
+      "room_door_01": "3b5bf2605a839cfe13565796267e47d4c25a7d66b1c8624bf00499864f5d9fda",
+      "room_floor_panel_01": "ebe9c6b5fd07f71f8a4efc83bc773e7dc53a95ca143d1474b68e0d380ac80393",
+      "room_wall_panel_01": "f9761d2d5faa55bffd7026020684333c0682dfbb0845e5aab0b3a54158e1e06f",
+      "room_window_01": "5f0f7736c813ecff31f91de74138cee2bddd3252e0aa9c236d528aa33afb4e17",
+      "shelf_01": "9baacc6a14148c075480e6901e4e2c963c72f4e6c4192abde77ea9f854c8f786",
+      "stool_01": "5280a7d07fe56720274a9b7aea940719d666a021950fde4a0431ec15fff3214c"
+    }
+  }
+}

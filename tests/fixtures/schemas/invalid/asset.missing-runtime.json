@@ -1,0 +1,90 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset",
+  "generated": true,
+  "id": "procedural_crate_01",
+  "version": "1.0.0",
+  "name": "Procedural shipping crate",
+  "description": "An invalid published manifest that omits its required web runtime artifact.",
+  "publication_status": "published",
+  "published_at": "2026-08-01T12:10:00Z",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "coordinate_system": {
+    "unit": "meter",
+    "meters_per_unit": 1,
+    "up_axis": "Y",
+    "forward_axis": "+Z",
+    "handedness": "right",
+    "space": "asset-local"
+  },
+  "semantics": {
+    "categories": ["props"],
+    "tags": ["crate"],
+    "affordances": ["stackable"],
+    "placement": "floor"
+  },
+  "bounds_m": {
+    "minimum": [-0.4, 0, -0.3],
+    "maximum": [0.4, 0.6, 0.3],
+    "dimensions": [0.8, 0.6, 0.6]
+  },
+  "geometry": {
+    "vertex_count": 1240,
+    "triangle_count": 2380,
+    "material_count": 1,
+    "texture_count": 0
+  },
+  "source_generator": {
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "anchors": [],
+  "collisions": [],
+  "build_key": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "artifacts": {
+    "source": {
+      "role": "source",
+      "file_name": "source.blend",
+      "media_type": "application/x-blender",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bytes": 500000,
+      "uri": "objects/source.blend"
+    },
+    "provenance": {
+      "role": "provenance",
+      "file_name": "provenance.json",
+      "media_type": "application/json",
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "bytes": 1500,
+      "uri": "objects/provenance.json"
+    },
+    "inspection": {
+      "role": "inspection",
+      "file_name": "inspection.json",
+      "media_type": "application/json",
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "bytes": 2400,
+      "uri": "objects/inspection.json"
+    },
+    "build_receipt": {
+      "role": "build_receipt",
+      "file_name": "build-receipt.json",
+      "media_type": "application/json",
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "bytes": 3100,
+      "uri": "objects/build-receipt.json"
+    },
+    "previews": [
+      {
+        "role": "preview",
+        "file_name": "preview.png",
+        "media_type": "image/png",
+        "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "bytes": 60000,
+        "uri": "objects/preview.png"
+      }
+    ]
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/registry.schema.json",
+  "title": "NeuralStock generated registry snapshot v0.2",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "document_type",
+    "generated",
+    "revision",
+    "generated_at",
+    "profiles",
+    "entries",
+    "aliases",
+    "withdrawals"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.neuralstock.ai/v0.2/registry.schema.json"
+    },
+    "schema_version": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/schemaVersion"
+    },
+    "document_type": { "const": "registry" },
+    "generated": { "const": true },
+    "revision": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "profiles": {
+      "type": "array",
+      "items": { "const": "web-v1" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset",
+          "name",
+          "description",
+          "license",
+          "target_profile",
+          "coordinate_system",
+          "semantics",
+          "bounds_m",
+          "triangle_count",
+          "manifest"
+        ],
+        "properties": {
+          "asset": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/assetRef"
+          },
+          "name": { "type": "string", "minLength": 3, "maxLength": 100 },
+          "description": { "type": "string", "minLength": 20, "maxLength": 2000 },
+          "license": { "const": "CC0-1.0" },
+          "target_profile": { "const": "web-v1" },
+          "coordinate_system": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/runtimeCoordinateSystem"
+          },
+          "semantics": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/semantics"
+          },
+          "bounds_m": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/bounds"
+          },
+          "triangle_count": { "type": "integer", "minimum": 1 },
+          "manifest": {
+            "allOf": [
+              { "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/artifact" },
+              { "properties": { "role": { "const": "manifest" }, "file_name": { "const": "asset.json" }, "media_type": { "const": "application/json" } } }
+            ]
+          }
+        }
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "alias", "version"],
+        "properties": {
+          "id": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/assetId"
+          },
+          "alias": { "const": "latest" },
+          "version": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/semanticVersion"
+          }
+        }
+      }
+    },
+    "withdrawals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset", "reason", "recorded_at", "notice_uri"],
+        "properties": {
+          "asset": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/assetRef"
+          },
+          "reason": {
+            "type": "string",
+            "enum": ["rights", "security", "malformed", "other"]
+          },
+          "recorded_at": { "type": "string", "format": "date-time" },
+          "notice_uri": { "type": "string", "format": "uri", "maxLength": 2048 }
+        }
+      }
+    }
+  }
+}

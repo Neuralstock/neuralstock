@@ -1,0 +1,252 @@
+name: Publish packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_run_id:
+        description: Successful Package candidate workflow run ID
+        required: true
+        type: string
+      version:
+        description: Exact semantic version without the v prefix
+        required: true
+        default: 0.1.0
+        type: string
+      publish_npm:
+        description: Publish @neuralstock/client through npm trusted publishing
+        required: true
+        default: true
+        type: boolean
+      publish_pypi:
+        description: Publish neuralstock through PyPI trusted publishing
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-publication-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify package candidate
+    if: inputs.publish_npm || inputs.publish_pypi
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      attestations: read
+      contents: read
+    steps:
+      - name: Check out selected tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Validate trusted-publisher identity
+        env:
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REPOSITORY" = Neuralstock/neuralstock
+          test "$GITHUB_REF_TYPE" = tag
+          test "$GITHUB_REF_NAME" = "v$RELEASE_VERSION"
+          tools/verify-release-tag.sh "$RELEASE_VERSION" "$GITHUB_SHA"
+          run_path=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$PACKAGE_RUN_ID" \
+            --jq .path)
+          run_conclusion=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$PACKAGE_RUN_ID" \
+            --jq .conclusion)
+          run_sha=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$PACKAGE_RUN_ID" \
+            --jq .head_sha)
+          test "$run_path" = ".github/workflows/package.yml"
+          test "$run_conclusion" = success
+          test "$run_sha" = "$GITHUB_SHA"
+
+      - name: Download attested candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          github-token: ${{ github.token }}
+          name: package-candidate
+          path: dist/package-candidate
+          run-id: ${{ inputs.package_run_id }}
+
+      - name: Verify checksums, provenance, and package identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          sha256sum --check --strict dist/package-candidate/SHA256SUMS
+          find dist/package-candidate -type f -print0 \
+            | sort --zero-terminated \
+            | xargs --null --max-args=1 gh attestation verify \
+                --repo "$GITHUB_REPOSITORY"
+          python - "$RELEASE_VERSION" <<'PY'
+          import json
+          import re
+          import sys
+          import tarfile
+          import zipfile
+          from email.parser import Parser
+          from pathlib import Path
+
+          version = sys.argv[1]
+          if re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", version) is None:
+              raise SystemExit("release version must be a plain semantic version")
+          root = Path("dist/package-candidate")
+          expected = {
+              root / "npm" / f"neuralstock-client-{version}.tgz",
+              root / "python" / f"neuralstock-{version}-py3-none-any.whl",
+              root / "python" / f"neuralstock-{version}.tar.gz",
+          }
+          actual = {path for path in root.rglob("*") if path.is_file() and path.name != "SHA256SUMS"}
+          if actual != expected:
+              raise SystemExit(f"unexpected package candidate files: {sorted(map(str, actual ^ expected))}")
+
+          npm_archive = root / "npm" / f"neuralstock-client-{version}.tgz"
+          with tarfile.open(npm_archive, "r:gz") as archive:
+              member = archive.getmember("package/package.json")
+              package = json.loads(archive.extractfile(member).read())
+          if package.get("name") != "@neuralstock/client" or package.get("version") != version:
+              raise SystemExit("npm archive package identity does not match the requested release")
+          repository = package.get("repository")
+          if not isinstance(repository, dict) or repository.get("url") != "https://github.com/Neuralstock/neuralstock":
+              raise SystemExit("npm archive repository does not match the trusted GitHub repository")
+
+          wheel = root / "python" / f"neuralstock-{version}-py3-none-any.whl"
+          with zipfile.ZipFile(wheel) as archive:
+              metadata_names = [name for name in archive.namelist() if name.endswith(".dist-info/METADATA")]
+              if len(metadata_names) != 1:
+                  raise SystemExit("Python wheel does not contain exactly one METADATA file")
+              metadata = Parser().parsestr(archive.read(metadata_names[0]).decode())
+          if metadata["Name"] != "neuralstock" or metadata["Version"] != version:
+              raise SystemExit("Python wheel identity does not match the requested release")
+          wheel_description = metadata.get_payload()
+          required_readme_fragments = {
+              "python -m pip install neuralstock",
+              "neuralstock validate --schema asset.intent",
+              "from neuralstock import (",
+          }
+          missing = sorted(
+              fragment
+              for fragment in required_readme_fragments
+              if fragment not in wheel_description
+          )
+          if missing:
+              raise SystemExit(f"Python package README is missing quick-start content: {missing}")
+          markdown_targets = re.findall(r"\[[^]]+\]\(([^)]+)\)", wheel_description)
+          if any(not target.startswith(("https://", "#")) for target in markdown_targets):
+              raise SystemExit("Python package README contains a non-portable relative link")
+          project_urls = set(metadata.get_all("Project-URL", []))
+          expected_project_urls = {
+              "Source, https://github.com/Neuralstock/neuralstock",
+              (
+                  "Release-Record, https://github.com/Neuralstock/neuralstock/"
+                  f"blob/v{version}/docs/releases/v{version}.md"
+              ),
+          }
+          if not expected_project_urls <= project_urls:
+              raise SystemExit(
+                  "Python package is missing canonical project URLs: "
+                  f"{sorted(expected_project_urls - project_urls)}"
+              )
+
+          sdist = root / "python" / f"neuralstock-{version}.tar.gz"
+          with tarfile.open(sdist, "r:gz") as archive:
+              metadata = Parser().parsestr(
+                  archive.extractfile(f"neuralstock-{version}/PKG-INFO").read().decode()
+              )
+          if metadata["Name"] != "neuralstock" or metadata["Version"] != version:
+              raise SystemExit("Python sdist identity does not match the requested release")
+          if metadata.get_payload() != wheel_description:
+              raise SystemExit("Python wheel and sdist contain different README content")
+          PY
+
+  npm:
+    name: Publish @neuralstock/client to npm
+    if: inputs.publish_npm
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out selected tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Reverify protected package tag after approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: tools/verify-release-tag.sh "${{ inputs.version }}" "$GITHUB_SHA"
+
+      - name: Download verified candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          github-token: ${{ github.token }}
+          name: package-candidate
+          path: dist/package-candidate
+          run-id: ${{ inputs.package_run_id }}
+
+      - name: Install trusted-publishing npm client
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish npm archive with OIDC
+        run: |
+          npm_version=$(npm --version)
+          node -e '
+            const [major, minor] = process.argv[1].split(".").map(Number);
+            if (major < 11 || (major === 11 && minor < 5)) process.exit(1);
+          ' "$npm_version"
+          npm publish \
+            "./dist/package-candidate/npm/neuralstock-client-${{ inputs.version }}.tgz" \
+            --access public
+
+  pypi:
+    name: Publish neuralstock to PyPI
+    if: inputs.publish_pypi
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: pypi
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out selected tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Reverify protected package tag after approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: tools/verify-release-tag.sh "${{ inputs.version }}" "$GITHUB_SHA"
+
+      - name: Download verified candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          github-token: ${{ github.token }}
+          name: package-candidate
+          path: dist/package-candidate
+          run-id: ${{ inputs.package_run_id }}
+
+      - name: Publish Python archives with OIDC
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          packages-dir: dist/package-candidate/python

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/provenance.schema.json",
+  "schema_version": "0.2",
+  "document_type": "provenance",
+  "asset": {
+    "id": "procedural_table_01",
+    "version": "1.0.1"
+  },
+  "source_sha256": "5dd99de14fccb020d9312dcedca7ff9f8d91667abadce06815a4a76292c6d17b",
+  "license": "CC0-1.0",
+  "dedication": {
+    "dedicator": "Joseph Nordqvist",
+    "dedicator_type": "person",
+    "project": "NeuralStock Open Asset Engine",
+    "project_uri": "https://neuralstock.ai/",
+    "verification_uri": "https://neuralstock.ai/#mission",
+    "date": "2026-08-01",
+    "scope": "asset-and-bundled-dependencies",
+    "legal_code_uri": "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+  },
+  "origin": {
+    "kind": "original",
+    "creation_notes": "Original procedural wooden table geometry created from Blender primitives by repository-owned deterministic generator code; no third-party artistic assets or bundled dependencies."
+  },
+  "contributors": [
+    {
+      "name": "Joseph Nordqvist",
+      "roles": [
+        "creator",
+        "procedural-author"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "evidence": [
+    {
+      "kind": "author-attestation",
+      "uri": "../../evidence/room-zero-v1.0.1-migration-attestation.md",
+      "captured_at": "2026-08-01T22:52:12Z",
+      "sha256": "95531e49b5da7616fa769cdbd7d97a84e51beb8798d5180fb3abfbb2a074c32e"
+    }
+  ],
+  "rights_review": {
+    "trademark": "not-applicable",
+    "design_rights": "clear",
+    "personality_rights": "not-applicable",
+    "notes": "Generic original table design with no branding or copied distinctive product configuration."
+  },
+  "attestation": {
+    "accepted": true,
+    "statement_version": "1.0",
+    "submitted_at": "2026-08-01T19:46:54Z"
+  }
+}

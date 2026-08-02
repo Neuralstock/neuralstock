@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "room_window_01",
+  "version": "1.0.1",
+  "name": "Procedural room window",
+  "description": "A bounded procedural glazed window module with an opening-center anchor for modular interior walls.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "5f0f7736c813ecff31f91de74138cee2bddd3252e0aa9c236d528aa33afb4e17"
+  },
+  "semantics": {
+    "categories": [
+      "architecture",
+      "openings"
+    ],
+    "tags": [
+      "frame",
+      "glass",
+      "modular",
+      "window"
+    ],
+    "affordances": [
+      "view-through",
+      "wall-opening"
+    ],
+    "placement": "wall"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "WindowGenerator",
+    "parameters": {
+      "height_m": {
+        "agent_safe": true,
+        "default": 1.05,
+        "description": "Outer window frame height.",
+        "label": "Height",
+        "maximum": 3.0,
+        "minimum": 0.4,
+        "type": "float",
+        "unit": "meter"
+      },
+      "thickness_m": {
+        "agent_safe": true,
+        "default": 0.12,
+        "description": "Outer window frame depth.",
+        "label": "Thickness",
+        "maximum": 0.5,
+        "minimum": 0.04,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 1.2,
+        "description": "Outer window frame width.",
+        "label": "Width",
+        "maximum": 4.0,
+        "minimum": 0.4,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_opening_center"
+  ]
+}

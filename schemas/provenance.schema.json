@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/provenance.schema.json",
+  "title": "NeuralStock authored provenance v0.2",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "document_type",
+    "asset",
+    "source_sha256",
+    "license",
+    "dedication",
+    "origin",
+    "contributors",
+    "dependencies",
+    "evidence",
+    "rights_review",
+    "attestation"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.neuralstock.ai/v0.2/provenance.schema.json"
+    },
+    "schema_version": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/schemaVersion"
+    },
+    "document_type": { "const": "provenance" },
+    "asset": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/assetRef"
+    },
+    "source_sha256": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+    },
+    "license": { "const": "CC0-1.0" },
+    "dedication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dedicator",
+        "dedicator_type",
+        "project",
+        "project_uri",
+        "verification_uri",
+        "date",
+        "scope",
+        "legal_code_uri"
+      ],
+      "properties": {
+        "dedicator": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "dedicator_type": { "type": "string", "enum": ["person", "organization"] },
+        "project": { "const": "NeuralStock Open Asset Engine" },
+        "project_uri": { "const": "https://neuralstock.ai/" },
+        "verification_uri": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "date": { "type": "string", "format": "date" },
+        "scope": { "const": "asset-and-bundled-dependencies" },
+        "legal_code_uri": {
+          "const": "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+        }
+      }
+    },
+    "origin": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "original" },
+            "creation_notes": { "type": "string", "maxLength": 1000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "source_uri", "retrieved_at", "upstream_author"],
+          "properties": {
+            "kind": { "const": "imported-public-domain" },
+            "source_uri": { "type": "string", "format": "uri", "maxLength": 2048 },
+            "retrieved_at": { "type": "string", "format": "date-time" },
+            "upstream_author": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "upstream_identifier": { "type": "string", "maxLength": 300 }
+          }
+        }
+      ]
+    },
+    "contributors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "roles"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "maxLength": 200 },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["creator", "procedural-author", "texture-author", "reviewer", "importer"]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "uri": { "type": "string", "format": "uri", "maxLength": 2048 }
+        }
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind", "included", "license", "source_uri", "evidence_uri"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "kind": {
+            "type": "string",
+            "enum": ["texture", "hdri", "font", "geometry", "node-group", "reference", "other"]
+          },
+          "included": { "type": "boolean" },
+          "license": {
+            "type": "string",
+            "enum": ["CC0-1.0", "PDM-1.0", "LicenseRef-Public-Domain-Equivalent"]
+          },
+          "source_uri": { "type": "string", "format": "uri", "maxLength": 2048 },
+          "evidence_uri": { "type": "string", "format": "uri-reference", "maxLength": 2048 },
+          "sha256": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+          }
+        }
+      },
+      "maxItems": 128
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "uri", "captured_at"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["author-attestation", "upstream-license", "archived-snapshot", "review-note"]
+          },
+          "uri": { "type": "string", "format": "uri-reference", "maxLength": 2048 },
+          "captured_at": { "type": "string", "format": "date-time" },
+          "sha256": {
+            "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "rights_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trademark", "design_rights", "personality_rights", "notes"],
+      "properties": {
+        "trademark": { "type": "string", "enum": ["clear", "not-applicable", "needs-review"] },
+        "design_rights": { "type": "string", "enum": ["clear", "not-applicable", "needs-review"] },
+        "personality_rights": { "type": "string", "enum": ["clear", "not-applicable", "needs-review"] },
+        "notes": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accepted", "statement_version", "submitted_at"],
+      "properties": {
+        "accepted": { "const": true },
+        "statement_version": { "const": "1.0" },
+        "submitted_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "mug_01",
+  "version": "1.0.1",
+  "name": "Handled mug",
+  "description": "A small handled drinking mug with grip and liquid-surface anchors for desks and kitchen scenes.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "f6b8dea2b3e2af4d0657918216ad2f0a758295e5139cecb907a763d6b12ea207"
+  },
+  "semantics": {
+    "categories": [
+      "kitchen",
+      "props"
+    ],
+    "tags": [
+      "cup",
+      "drinkware",
+      "mug"
+    ],
+    "affordances": [
+      "graspable",
+      "liquid-container"
+    ],
+    "placement": "surface"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_drink_surface",
+    "ANCHOR_grip_center"
+  ]
+}

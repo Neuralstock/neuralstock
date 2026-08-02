@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/profile.schema.json",
+  "title": "NeuralStock runtime profile v0.2",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "document_type",
+    "id",
+    "x-neuralstock-document-license",
+    "description",
+    "authoring_coordinates",
+    "runtime_coordinates",
+    "scene",
+    "anchors",
+    "collisions",
+    "resources",
+    "parameters",
+    "security",
+    "runtime",
+    "budgets"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.neuralstock.ai/v0.2/profile.schema.json"
+    },
+    "schema_version": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/schemaVersion"
+    },
+    "document_type": { "const": "runtime-profile" },
+    "id": { "const": "web-v1" },
+    "x-neuralstock-document-license": {
+      "allOf": [
+        {
+          "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/documentLicense"
+        },
+        {
+          "properties": {
+            "license_uri": {
+              "const": "https://schemas.neuralstock.ai/profiles/v0.2/LICENSE"
+            }
+          }
+        }
+      ]
+    },
+    "description": { "type": "string", "minLength": 20, "maxLength": 1000 },
+    "authoring_coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "meters_per_unit", "up_axis", "forward_axis", "handedness"],
+      "properties": {
+        "unit": { "const": "meter" },
+        "meters_per_unit": { "const": 1 },
+        "up_axis": { "const": "Z" },
+        "forward_axis": { "const": "-Y" },
+        "handedness": { "const": "right" }
+      }
+    },
+    "runtime_coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "unit", "meters_per_unit", "up_axis", "forward_axis", "handedness"],
+      "properties": {
+        "format": { "const": "glTF-2.0" },
+        "unit": { "const": "meter" },
+        "meters_per_unit": { "const": 1 },
+        "up_axis": { "const": "Y" },
+        "forward_axis": { "const": "+Z" },
+        "handedness": { "const": "right" }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_collection", "single_asset_collection", "origin_policy", "origin_position_m", "applied_scale"],
+      "properties": {
+        "asset_collection": { "const": "ASSET" },
+        "single_asset_collection": { "const": true },
+        "origin_policy": { "const": "ground-center-of-evaluated-bounds" },
+        "origin_position_m": { "const": [0, 0, 0] },
+        "applied_scale": { "const": [1, 1, 1] }
+      }
+    },
+    "anchors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_type", "name_pattern", "space"],
+      "properties": {
+        "object_type": { "const": "EMPTY" },
+        "name_pattern": { "const": "^ANCHOR_[a-z][a-z0-9_]*$" },
+        "space": { "const": "asset-local-meters" }
+      }
+    },
+    "collisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collection", "name_pattern", "renderable", "allowed_kinds"],
+      "properties": {
+        "collection": { "const": "COLLISION" },
+        "name_pattern": { "const": "^COLLISION_[a-z][a-z0-9_]*$" },
+        "renderable": { "const": false },
+        "allowed_kinds": {
+          "const": ["box"]
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all_packed", "external_files", "linked_libraries", "network_uris", "absolute_paths"],
+      "properties": {
+        "all_packed": { "const": true },
+        "external_files": { "const": "forbidden" },
+        "linked_libraries": { "const": "forbidden" },
+        "network_uris": { "const": "forbidden" },
+        "absolute_paths": { "const": "forbidden" }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interface", "identifier_pattern", "allowed_types", "numeric_bounds", "enum_default_in_options", "maximum_count", "forbidden_types"],
+      "properties": {
+        "interface": { "const": "geometry-nodes-group-inputs" },
+        "identifier_pattern": { "const": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$" },
+        "allowed_types": { "const": ["float", "integer", "boolean", "enum"] },
+        "numeric_bounds": { "const": "finite-inclusive-required" },
+        "enum_default_in_options": { "const": true },
+        "maximum_count": { "const": 32 },
+        "forbidden_types": {
+          "const": ["string", "path", "object", "collection", "geometry", "material", "shader", "image", "expression"]
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["embedded_python", "auto_run_scripts", "arbitrary_drivers", "network_access"],
+      "properties": {
+        "embedded_python": { "const": "forbidden" },
+        "auto_run_scripts": { "const": "forbidden" },
+        "arbitrary_drivers": { "const": "forbidden" },
+        "network_access": { "const": "forbidden" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact", "container", "validator", "geometry_compression"],
+      "properties": {
+        "artifact": { "const": "model.glb" },
+        "container": { "const": "GLB" },
+        "validator": { "const": "Khronos-glTF-Validator" },
+        "geometry_compression": { "type": "string", "enum": ["none", "EXT_meshopt_compression"] }
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triangle_count", "vertex_count", "material_count", "texture_count", "texture_max_dimension_px", "packed_texture_bytes", "glb_bytes"],
+      "properties": {
+        "triangle_count": { "type": "integer", "minimum": 1 },
+        "vertex_count": { "type": "integer", "minimum": 1 },
+        "material_count": { "type": "integer", "minimum": 1 },
+        "texture_count": { "type": "integer", "minimum": 0 },
+        "texture_max_dimension_px": { "type": "integer", "minimum": 1 },
+        "packed_texture_bytes": { "type": "integer", "minimum": 0 },
+        "glb_bytes": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

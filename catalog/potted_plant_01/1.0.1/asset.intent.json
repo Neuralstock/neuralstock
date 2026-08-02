@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "potted_plant_01",
+  "version": "1.0.1",
+  "name": "Potted plant",
+  "description": "A broad-leaf potted plant with pot-base and soil anchors for interior decoration and scene dressing.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "a71ce3b6e5f6888de7511bf3146527843efe6290200f288fc5214de9401a7983"
+  },
+  "semantics": {
+    "categories": [
+      "decor",
+      "plants"
+    ],
+    "tags": [
+      "foliage",
+      "indoor-plant",
+      "potted-plant"
+    ],
+    "affordances": [
+      "decorative",
+      "movable"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_pot_base",
+    "ANCHOR_soil_center"
+  ]
+}

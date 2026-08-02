@@ -1,0 +1,126 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset",
+  "generated": true,
+  "id": "procedural_crate_01",
+  "version": "1.0.0",
+  "name": "Procedural shipping crate",
+  "description": "A configurable wooden shipping crate for rooms, warehouses, and game scenes.",
+  "publication_status": "published",
+  "published_at": "2026-08-01T12:10:00Z",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "coordinate_system": {
+    "unit": "meter",
+    "meters_per_unit": 1,
+    "up_axis": "Y",
+    "forward_axis": "+Z",
+    "handedness": "right",
+    "space": "asset-local"
+  },
+  "semantics": {
+    "categories": ["props", "storage"],
+    "tags": ["crate", "wood", "shipping"],
+    "affordances": ["stackable", "support-surface"],
+    "placement": "floor"
+  },
+  "bounds_m": {
+    "minimum": [-0.4, 0, -0.3],
+    "maximum": [0.4, 0.6, 0.3],
+    "dimensions": [0.8, 0.6, 0.6]
+  },
+  "geometry": {
+    "vertex_count": 1240,
+    "triangle_count": 2380,
+    "material_count": 1,
+    "texture_count": 0
+  },
+  "source_generator": {
+    "geometry_node_group": "CrateGenerator",
+    "parameters": {
+      "width_meters": {
+        "type": "float",
+        "default": 0.8,
+        "minimum": 0.4,
+        "maximum": 2.0,
+        "unit": "meter",
+        "agent_safe": true
+      }
+    }
+  },
+  "anchors": [
+    {
+      "name": "ANCHOR_top_center",
+      "position_m": [0, 0.6, 0],
+      "rotation_xyzw": [0, 0, 0, 1],
+      "semantic": "top-center"
+    }
+  ],
+  "collisions": [
+    {
+      "name": "COLLISION_main",
+      "kind": "box",
+      "bounds_m": {
+        "minimum": [-0.4, 0.0, -0.3],
+        "maximum": [0.4, 0.6, 0.3],
+        "dimensions": [0.8, 0.6, 0.6]
+      },
+      "vertex_count": 8,
+      "triangle_count": 12
+    }
+  ],
+  "build_key": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "artifacts": {
+    "source": {
+      "role": "source",
+      "file_name": "source.blend",
+      "media_type": "application/x-blender",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bytes": 500000,
+      "uri": "/objects/sha256/aa/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "runtime": {
+      "role": "runtime",
+      "file_name": "model.glb",
+      "media_type": "model/gltf-binary",
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "bytes": 220000,
+      "uri": "/objects/sha256/ff/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "provenance": {
+      "role": "provenance",
+      "file_name": "provenance.json",
+      "media_type": "application/json",
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "bytes": 1500,
+      "uri": "/objects/sha256/ee/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "inspection": {
+      "role": "inspection",
+      "file_name": "inspection.json",
+      "media_type": "application/json",
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "bytes": 2400,
+      "uri": "/objects/sha256/99/9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "build_receipt": {
+      "role": "build_receipt",
+      "file_name": "build-receipt.json",
+      "media_type": "application/json",
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "bytes": 3100,
+      "uri": "/objects/sha256/77/7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    "previews": [
+      {
+        "role": "preview",
+        "file_name": "preview.png",
+        "media_type": "image/png",
+        "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "bytes": 60000,
+        "uri": "/objects/sha256/88/8888888888888888888888888888888888888888888888888888888888888888"
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "procedural_table_01",
+  "version": "1.0.1",
+  "name": "Procedural wooden table",
+  "description": "A bounded procedural wooden table with top and front anchors for dining, work, and room layouts.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "5dd99de14fccb020d9312dcedca7ff9f8d91667abadce06815a4a76292c6d17b"
+  },
+  "semantics": {
+    "categories": [
+      "furniture",
+      "tables"
+    ],
+    "tags": [
+      "desk",
+      "dining-table",
+      "wooden-table"
+    ],
+    "affordances": [
+      "support-surface"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "TableGenerator",
+    "parameters": {
+      "height_m": {
+        "agent_safe": true,
+        "default": 0.76,
+        "description": "Overall table height in meters.",
+        "label": "Height",
+        "maximum": 1.2,
+        "minimum": 0.55,
+        "type": "float",
+        "unit": "meter"
+      },
+      "length_m": {
+        "agent_safe": true,
+        "default": 1.8,
+        "description": "Overall table length in meters.",
+        "label": "Length",
+        "maximum": 4.0,
+        "minimum": 0.8,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 0.9,
+        "description": "Overall table width in meters.",
+        "label": "Width",
+        "maximum": 2.0,
+        "minimum": 0.5,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_front_center",
+    "ANCHOR_top_surface"
+  ]
+}

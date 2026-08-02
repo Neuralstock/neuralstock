@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "room_wall_panel_01",
+  "version": "1.0.1",
+  "name": "Procedural wall panel",
+  "description": "A bounded procedural wall panel with front and top anchors for modular interior construction.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "f9761d2d5faa55bffd7026020684333c0682dfbb0845e5aab0b3a54158e1e06f"
+  },
+  "semantics": {
+    "categories": [
+      "architecture",
+      "surfaces"
+    ],
+    "tags": [
+      "modular",
+      "panel",
+      "wall"
+    ],
+    "affordances": [
+      "mount-surface",
+      "partition",
+      "tileable"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "WallPanelGenerator",
+    "parameters": {
+      "height_m": {
+        "agent_safe": true,
+        "default": 2.5,
+        "description": "Wall module height.",
+        "label": "Height",
+        "maximum": 6.0,
+        "minimum": 0.5,
+        "type": "float",
+        "unit": "meter"
+      },
+      "thickness_m": {
+        "agent_safe": true,
+        "default": 0.14,
+        "description": "Wall module depth along local Y.",
+        "label": "Thickness",
+        "maximum": 0.6,
+        "minimum": 0.06,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 3.0,
+        "description": "Wall module width along the local X axis.",
+        "label": "Width",
+        "maximum": 12.0,
+        "minimum": 0.4,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_front_center",
+    "ANCHOR_top_center"
+  ]
+}

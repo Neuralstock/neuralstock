@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/build-receipt.schema.json",
+  "title": "NeuralStock generated build receipt v0.2",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "document_type",
+    "generated",
+    "asset",
+    "build_id",
+    "build_key",
+    "started_at",
+    "completed_at",
+    "source_sha256",
+    "parameters",
+    "normalized_parameters_sha256",
+    "target_profile",
+    "builder",
+    "environment",
+    "export",
+    "inputs",
+    "outputs",
+    "validation",
+    "reproducibility"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.neuralstock.ai/v0.2/build-receipt.schema.json"
+    },
+    "schema_version": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/schemaVersion"
+    },
+    "document_type": { "const": "build-receipt" },
+    "generated": { "const": true },
+    "asset": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/assetRef"
+    },
+    "build_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{7,127}$"
+    },
+    "build_key": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+    },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "source_sha256": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+    },
+    "parameters": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+        "maxLength": 64
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/parameterValue"
+      },
+      "maxProperties": 32
+    },
+    "normalized_parameters_sha256": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+    },
+    "target_profile": { "const": "web-v1" },
+    "builder": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/generator"
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blender_version", "image_digest", "platform"],
+      "properties": {
+        "blender_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+(?:\\.[0-9]+)?$" },
+        "image_digest": {
+          "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/ociDigest"
+        },
+        "platform": { "type": "string", "enum": ["linux/amd64", "linux/arm64"] }
+      }
+    },
+    "export": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "geometry_compression", "materials", "animations"],
+      "properties": {
+        "format": { "const": "GLB" },
+        "geometry_compression": { "type": "string", "enum": ["none", "EXT_meshopt_compression"] },
+        "materials": { "const": "PBR-metallic-roughness" },
+        "animations": { "type": "boolean" }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/artifact"
+      },
+      "minItems": 2,
+      "maxItems": 32
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/artifact"
+      },
+      "minItems": 3,
+      "maxItems": 128
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "inspection_sha256"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pass", "fail"] },
+        "inspection_sha256": {
+          "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "allowed_nondeterminism"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["reproduced", "known-nondeterminism"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["comparison_build_id"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "not-yet-reproduced" }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "not": {
+              "required": ["comparison_build_id"]
+            }
+          }
+        }
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["not-yet-reproduced", "reproduced", "known-nondeterminism"]
+        },
+        "allowed_nondeterminism": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "maxItems": 16
+        },
+        "comparison_build_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{7,127}$"
+        }
+      }
+    }
+  }
+}

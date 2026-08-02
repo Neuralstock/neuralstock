@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "room_floor_panel_01",
+  "version": "1.0.1",
+  "name": "Procedural floor panel",
+  "description": "A bounded procedural floor panel with a top-surface anchor for modular rooms and walkable layouts.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "ebe9c6b5fd07f71f8a4efc83bc773e7dc53a95ca143d1474b68e0d380ac80393"
+  },
+  "semantics": {
+    "categories": [
+      "architecture",
+      "surfaces"
+    ],
+    "tags": [
+      "floor",
+      "modular",
+      "panel"
+    ],
+    "affordances": [
+      "support-surface",
+      "tileable",
+      "walkable"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "FloorPanelGenerator",
+    "parameters": {
+      "depth_m": {
+        "agent_safe": true,
+        "default": 2.0,
+        "description": "Panel depth along the local Y axis.",
+        "label": "Depth",
+        "maximum": 8.0,
+        "minimum": 0.25,
+        "type": "float",
+        "unit": "meter"
+      },
+      "thickness_m": {
+        "agent_safe": true,
+        "default": 0.12,
+        "description": "Finished panel thickness.",
+        "label": "Thickness",
+        "maximum": 0.5,
+        "minimum": 0.03,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 2.0,
+        "description": "Panel width along the local X axis.",
+        "label": "Width",
+        "maximum": 8.0,
+        "minimum": 0.25,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_top_surface"
+  ]
+}

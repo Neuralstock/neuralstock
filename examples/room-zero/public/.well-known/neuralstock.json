@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/discovery.schema.json",
+  "schema_version": "0.2",
+  "document_type": "discovery",
+  "site": "https://neuralstock.ai/",
+  "asset_origin": "https://assets.neuralstock.ai",
+  "schema_origin": "https://schemas.neuralstock.ai",
+  "registry": {
+    "canonical": "https://assets.neuralstock.ai/registry.json",
+    "latest_snapshot": "https://assets.neuralstock.ai/snapshots/latest.json",
+    "immutable_snapshot_template": "https://assets.neuralstock.ai/snapshots/{revision}/registry.json"
+  },
+  "license_policy": [
+    "CC0-1.0"
+  ],
+  "clients": {
+    "npm": "@neuralstock/client",
+    "python": "neuralstock"
+  }
+}

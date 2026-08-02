@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/common.schema.json",
+  "title": "NeuralStock v0.2 common definitions",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "$defs": {
+    "documentLicense": {"type":"object","additionalProperties":false,"required":["spdx_id","copyright","license_uri","license_sha256","license_text"],"properties":{"spdx_id":{"const":"MIT"},"copyright":{"const":"Copyright (c) 2026 NeuralStock contributors"},"license_uri":{"type":"string","enum":["https://schemas.neuralstock.ai/v0.2/LICENSE","https://schemas.neuralstock.ai/profiles/v0.2/LICENSE"]},"license_sha256":{"const":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200"},"license_text":{"const":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"}}},
+    "schemaVersion": {
+      "type": "string",
+      "const": "0.2"
+    },
+    "assetId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 80
+    },
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+      "maxLength": 80
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "ociDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 64
+    },
+    "safeFileName": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "vector3": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number" },
+        { "type": "number" },
+        { "type": "number" }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "positiveVector3": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "exclusiveMinimum": 0 },
+        { "type": "number", "exclusiveMinimum": 0 },
+        { "type": "number", "exclusiveMinimum": 0 }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "quaternionXyzw": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": -1, "maximum": 1 },
+        { "type": "number", "minimum": -1, "maximum": 1 },
+        { "type": "number", "minimum": -1, "maximum": 1 },
+        { "type": "number", "minimum": -1, "maximum": 1 }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "assetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "$ref": "#/$defs/assetId" },
+        "version": { "$ref": "#/$defs/semanticVersion" }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["categories", "tags", "affordances", "placement"],
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/slug" },
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "tags": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/slug" },
+          "maxItems": 32,
+          "uniqueItems": true
+        },
+        "affordances": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/slug" },
+          "maxItems": 24,
+          "uniqueItems": true
+        },
+        "placement": {
+          "type": "string",
+          "enum": ["floor", "wall", "ceiling", "surface", "free"]
+        }
+      }
+    },
+    "numberParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default", "minimum", "maximum", "agent_safe"],
+      "properties": {
+        "type": { "const": "float" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 500 },
+        "default": { "type": "number" },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" },
+        "step": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": {
+          "type": "string",
+          "enum": ["meter", "radian", "ratio", "unitless"]
+        },
+        "agent_safe": { "const": true }
+      }
+    },
+    "integerParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default", "minimum", "maximum", "agent_safe"],
+      "properties": {
+        "type": { "const": "integer" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 500 },
+        "default": { "type": "integer" },
+        "minimum": { "type": "integer" },
+        "maximum": { "type": "integer" },
+        "step": { "type": "integer", "minimum": 1 },
+        "unit": {
+          "type": "string",
+          "enum": ["meter", "radian", "unitless"]
+        },
+        "agent_safe": { "const": true }
+      }
+    },
+    "booleanParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default", "agent_safe"],
+      "properties": {
+        "type": { "const": "boolean" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 500 },
+        "default": { "type": "boolean" },
+        "agent_safe": { "const": true }
+      }
+    },
+    "enumParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default", "options", "agent_safe"],
+      "properties": {
+        "type": { "const": "enum" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 500 },
+        "default": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "minItems": 2,
+          "maxItems": 32,
+          "uniqueItems": true
+        },
+        "agent_safe": { "const": true }
+      }
+    },
+    "parameterDefinition": {
+      "oneOf": [
+        { "$ref": "#/$defs/numberParameter" },
+        { "$ref": "#/$defs/integerParameter" },
+        { "$ref": "#/$defs/booleanParameter" },
+        { "$ref": "#/$defs/enumParameter" }
+      ]
+    },
+    "parameterMap": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+        "maxLength": 64
+      },
+      "additionalProperties": { "$ref": "#/$defs/parameterDefinition" },
+      "maxProperties": 32
+    },
+    "parameterValue": {
+      "type": ["number", "boolean", "string"],
+      "maxLength": 64
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum", "dimensions"],
+      "properties": {
+        "minimum": { "$ref": "#/$defs/vector3" },
+        "maximum": { "$ref": "#/$defs/vector3" },
+        "dimensions": { "$ref": "#/$defs/positiveVector3" }
+      }
+    },
+    "runtimeCoordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "meters_per_unit", "up_axis", "forward_axis", "handedness", "space"],
+      "properties": {
+        "unit": { "const": "meter" },
+        "meters_per_unit": { "const": 1 },
+        "up_axis": { "const": "Y" },
+        "forward_axis": { "const": "+Z" },
+        "handedness": { "const": "right" },
+        "space": { "const": "asset-local" }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "position_m", "rotation_xyzw"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^ANCHOR_[a-z][a-z0-9_]*$",
+          "maxLength": 96
+        },
+        "position_m": { "$ref": "#/$defs/vector3" },
+        "rotation_xyzw": { "$ref": "#/$defs/quaternionXyzw" },
+        "semantic": { "$ref": "#/$defs/slug" }
+      }
+    },
+    "collision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "bounds_m", "vertex_count", "triangle_count"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^COLLISION_[a-z][a-z0-9_]*$",
+          "maxLength": 96
+        },
+        "kind": {
+          "const": "box"
+        },
+        "bounds_m": { "$ref": "#/$defs/bounds" },
+        "vertex_count": { "type": "integer", "minimum": 0 },
+        "triangle_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "file_name", "media_type", "sha256", "bytes", "uri"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "source",
+            "runtime",
+            "preview",
+            "provenance",
+            "inspection",
+            "build_receipt",
+            "manifest",
+            "collision",
+            "lod",
+            "texture",
+            "registry_snapshot",
+            "evidence",
+            "build_evidence"
+          ]
+        },
+        "file_name": { "$ref": "#/$defs/safeFileName" },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[a-z0-9!#$&^_.+-]+/[a-z0-9!#$&^_.+-]+$",
+          "maxLength": 100
+        },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "uri": {
+          "type": "string",
+          "format": "uri-reference",
+          "pattern": "^/(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$",
+          "maxLength": 2048
+        }
+      }
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "uri"],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "uri": {
+          "type": "string",
+          "format": "uri-reference",
+          "pattern": "^/(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$",
+          "maxLength": 2048
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "version"],
+      "properties": {
+        "tool": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "code_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "validationCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "status", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+          "maxLength": 100
+        },
+        "status": { "type": "string", "enum": ["pass", "fail", "warning"] },
+        "message": { "type": "string", "maxLength": 1000 }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+name: Asset proposal
+description: Propose an asset or category before preparing a source upload.
+title: "[asset proposal]: "
+labels:
+  - asset-proposal
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The controlled beta accepts direct original, generic, static assets.
+        Do not attach `.blend` files, private evidence, or personal contact data.
+  - type: input
+    id: proposed_id
+    attributes:
+      label: Proposed asset ID
+      description: Use stable lower_snake_case.
+      placeholder: workshop_stool_01
+    validations:
+      required: true
+  - type: input
+    id: category
+    attributes:
+      label: Category and intended uses
+      placeholder: furniture / seating; room-layout and simulation scenes
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Asset description
+      description: Explain dimensions, placement, anchors, collisions, and useful customization.
+    validations:
+      required: true
+  - type: dropdown
+    id: origin
+    attributes:
+      label: Rights basis
+      options:
+        - Direct original work by the proposed dedicator
+        - Imported or third-party work requiring a future review path
+        - AI-assisted or generated work requiring a future review path
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Inputs and dependencies
+      description: List every texture, HDRI, font, scan, node group, kitbash part, reference, or generator.
+      placeholder: None; all geometry and materials will be created directly by me.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: I have read CONTRIBUTING.md and understand that proposal approval is not publication approval.
+          required: true
+        - label: I will use the private quarantine upload path when it becomes available and will not commit large binaries.
+          required: true

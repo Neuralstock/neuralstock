@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "desk_lamp_01",
+  "version": "1.0.1",
+  "name": "Desk lamp",
+  "description": "A stylized articulated desk lamp with base and light-origin anchors for task-light scenes.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "5a50db64e46801846cc7e8550141a6c9832bf0393f87aa315a0ee0e08dcdf6c2"
+  },
+  "semantics": {
+    "categories": [
+      "lighting",
+      "props"
+    ],
+    "tags": [
+      "desk-lamp",
+      "lamp",
+      "task-light"
+    ],
+    "affordances": [
+      "light-origin",
+      "movable"
+    ],
+    "placement": "surface"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_base_center",
+    "ANCHOR_light_origin"
+  ]
+}

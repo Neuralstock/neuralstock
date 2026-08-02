@@ -1,0 +1,78 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/profile.schema.json",
+  "schema_version": "0.2",
+  "document_type": "runtime-profile",
+  "id": "web-v1",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/profiles/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "description": "A valid fixture for the NeuralStock web-v1 runtime profile contract.",
+  "authoring_coordinates": {
+    "unit": "meter",
+    "meters_per_unit": 1,
+    "up_axis": "Z",
+    "forward_axis": "-Y",
+    "handedness": "right"
+  },
+  "runtime_coordinates": {
+    "format": "glTF-2.0",
+    "unit": "meter",
+    "meters_per_unit": 1,
+    "up_axis": "Y",
+    "forward_axis": "+Z",
+    "handedness": "right"
+  },
+  "scene": {
+    "asset_collection": "ASSET",
+    "single_asset_collection": true,
+    "origin_policy": "ground-center-of-evaluated-bounds",
+    "origin_position_m": [0, 0, 0],
+    "applied_scale": [1, 1, 1]
+  },
+  "anchors": {
+    "object_type": "EMPTY",
+    "name_pattern": "^ANCHOR_[a-z][a-z0-9_]*$",
+    "space": "asset-local-meters"
+  },
+  "collisions": {
+    "collection": "COLLISION",
+    "name_pattern": "^COLLISION_[a-z][a-z0-9_]*$",
+    "renderable": false,
+    "allowed_kinds": ["box"]
+  },
+  "resources": {
+    "all_packed": true,
+    "external_files": "forbidden",
+    "linked_libraries": "forbidden",
+    "network_uris": "forbidden",
+    "absolute_paths": "forbidden"
+  },
+  "parameters": {
+    "interface": "geometry-nodes-group-inputs",
+    "identifier_pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+    "allowed_types": ["float", "integer", "boolean", "enum"],
+    "numeric_bounds": "finite-inclusive-required",
+    "enum_default_in_options": true,
+    "maximum_count": 32,
+    "forbidden_types": ["string", "path", "object", "collection", "geometry", "material", "shader", "image", "expression"]
+  },
+  "security": {
+    "embedded_python": "forbidden",
+    "auto_run_scripts": "forbidden",
+    "arbitrary_drivers": "forbidden",
+    "network_access": "forbidden"
+  },
+  "runtime": {
+    "artifact": "model.glb",
+    "container": "GLB",
+    "validator": "Khronos-glTF-Validator",
+    "geometry_compression": "none"
+  },
+  "budgets": {
+    "triangle_count": 100000,
+    "vertex_count": 100000,
+    "material_count": 8,
+    "texture_count": 16,
+    "texture_max_dimension_px": 4096,
+    "packed_texture_bytes": 67108864,
+    "glb_bytes": 52428800
+  }
+}

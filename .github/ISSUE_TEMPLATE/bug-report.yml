@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a reproducible problem in the registry, client, tooling, or website.
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Do not use this form for security vulnerabilities or confidential rights claims.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Registry or manifest
+        - Blender build or inspection
+        - Python tooling
+        - TypeScript client
+        - Website or downloads
+        - Cloudflare publication
+        - Documentation
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version, registry revision, or commit
+      placeholder: registry revision or asset_id@1.0.1
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include the smallest safe sequence, command, or public URL that demonstrates the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser/runtime, Blender version, package version, and relevant non-secret configuration.

@@ -1,0 +1,91 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "neuralstock"
+dynamic = ["version"]
+description = "Open, agent-native tooling for reproducible CC0 Blender assets"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "NeuralStock contributors" }]
+maintainers = [{ name = "Joseph Nordqvist" }]
+keywords = ["3d", "assets", "blender", "cc0", "glb", "gltf"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+dependencies = [
+  "jsonschema[format]>=4.23,<5",
+  "referencing>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "ruff>=0.11,<1",
+]
+r2 = ["boto3>=1.35,<2"]
+
+[project.scripts]
+neuralstock = "neuralstock.cli:main"
+
+[project.urls]
+Homepage = "https://neuralstock.ai/"
+Documentation = "https://github.com/Neuralstock/neuralstock#readme"
+Issues = "https://github.com/Neuralstock/neuralstock/issues"
+Release-Record = "https://github.com/Neuralstock/neuralstock/blob/v0.1.0/docs/releases/v0.1.0.md"
+Source = "https://github.com/Neuralstock/neuralstock"
+
+[tool.hatch.version]
+path = "src/neuralstock/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/neuralstock"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"LICENSE" = "neuralstock/data/LICENSE"
+"schemas" = "neuralstock/data/schemas"
+"profiles" = "neuralstock/data/profiles"
+"src/neuralstock/data/tools/validate-gltf.bundle.cjs" = "neuralstock/data/tools/validate-gltf.bundle.cjs"
+"src/neuralstock/data/tools/gltf-validator.LICENSE" = "neuralstock/data/tools/gltf-validator.LICENSE"
+"src/neuralstock/data/tools/gltf-validator.NOTICES" = "neuralstock/data/tools/gltf-validator.NOTICES"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/LICENSE",
+  "/README.md",
+  "/discovery",
+  "/profiles",
+  "/pyproject.toml",
+  "/schemas",
+  "/src/neuralstock",
+]
+
+[tool.hatch.build.targets.sdist.force-include]
+"schemas" = "schemas"
+"profiles" = "profiles"
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.format]
+quote-style = "double"

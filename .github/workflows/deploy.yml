@@ -1,0 +1,416 @@
+name: Production deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_run_id:
+        description: Successful Release candidate workflow run ID
+        required: true
+        type: string
+      version:
+        description: Expected semantic version without the v prefix
+        required: true
+        default: 0.1.0
+        type: string
+      registry_revision:
+        description: Expected 64-character registry revision
+        required: true
+        type: string
+      phase:
+        description: Stage immutable content first; publish aliases/site only after lock evidence
+        required: true
+        default: immutable-bootstrap
+        type: choice
+        options:
+          - immutable-bootstrap
+          - publish
+      retention_evidence_sha256:
+        description: Publish phase only; SHA-256 of the independent lock readback JSON
+        required: false
+        type: string
+      deploy_site:
+        description: Publish phase only; deploy the matching website build
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Verify and deploy production candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Check out the candidate revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Enforce the production deployment ref
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          case "$GITHUB_REF_TYPE:$GITHUB_REF_NAME" in
+            branch:main) ;;
+            tag:v"$RELEASE_VERSION") ;;
+            *)
+              echo "production deployments require branch main or tag v$RELEASE_VERSION" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Verify protected release lineage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: tools/verify-release-tag.sh "$RELEASE_VERSION" "$GITHUB_SHA"
+
+      - name: Enforce two-phase retention boundary
+        env:
+          DEPLOY_PHASE: ${{ inputs.phase }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          case "$DEPLOY_PHASE" in
+            immutable-bootstrap)
+              test -z "$RETENTION_EVIDENCE_SHA256"
+              ;;
+            publish)
+              printf '%s\n' "$RETENTION_EVIDENCE_SHA256" \
+                | grep -Eq '^[0-9a-f]{64}$'
+              test "$RETENTION_EVIDENCE_SHA256" != \
+                0000000000000000000000000000000000000000000000000000000000000000
+              ;;
+            *)
+              echo "unsupported deployment phase: $DEPLOY_PHASE" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install pnpm
+        if: inputs.phase == 'publish' && inputs.deploy_site
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+      - name: Install Node.js
+        if: inputs.phase == 'publish' && inputs.deploy_site
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          package-manager-cache: false
+
+      - name: Download release candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_RUN_ID: ${{ inputs.release_run_id }}
+        run: |
+          run_path=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" \
+            --jq .path)
+          run_conclusion=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" \
+            --jq .conclusion)
+          run_sha=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" \
+            --jq .head_sha)
+          test "$run_path" = ".github/workflows/release.yml"
+          test "$run_conclusion" = success
+          test "$run_sha" = "$GITHUB_SHA"
+
+      - name: Download release candidate artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          github-token: ${{ github.token }}
+          name: release-candidate
+          path: dist/release-candidate
+          run-id: ${{ inputs.release_run_id }}
+
+      - name: Verify candidate identity and checksums
+        env:
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+        run: |
+          tools/verify-release-candidate.sh \
+            dist/release-candidate \
+            "$EXPECTED_VERSION" \
+            "$EXPECTED_REVISION"
+          test "$(jq -r .source_commit dist/release-candidate/release-metadata.json)" = "$GITHUB_SHA"
+
+      - name: Extract verified release
+        run: |
+          mkdir -p dist/production-release
+          archive=$(jq -r .release_archive dist/release-candidate/release-metadata.json)
+          tar \
+            --extract \
+            --gzip \
+            --file="dist/release-candidate/$archive" \
+            --directory=dist/production-release \
+            --no-same-owner \
+            --no-same-permissions
+
+      - name: Install locked JavaScript dependencies
+        if: inputs.phase == 'publish' && inputs.deploy_site
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify extracted immutable contracts
+        run: |
+          test -d dist/production-release/v0.2
+          for schema_path in schemas/*.json; do
+            schema_name=$(basename "$schema_path")
+            cmp "$schema_path" "dist/production-release/v0.2/$schema_name"
+          done
+          cmp LICENSE dist/production-release/v0.2/LICENSE
+          cmp \
+            profiles/web-v1.json \
+            dist/production-release/profiles/v0.2/web-v1.json
+          cmp LICENSE dist/production-release/profiles/v0.2/LICENSE
+
+      - name: Preflight locked canonical contract origin
+        if: inputs.phase == 'publish'
+        run: tools/verify-contract-origin.sh dist/production-release
+
+      - name: Preflight production cache policy
+        if: inputs.phase == 'publish'
+        run: |
+          for alias_key in registry.json snapshots/latest.json; do
+            curl --fail --silent --show-error \
+              --head \
+              "https://assets.neuralstock.ai/$alias_key" \
+              --output "dist/preflight-${alias_key##*/}-headers.txt"
+            cache_control=$(awk '
+              tolower($1) == "cache-control:" {
+                $1 = ""
+                sub(/^[[:space:]]+/, "")
+                value = tolower($0)
+              }
+              END { print value }
+            ' "dist/preflight-${alias_key##*/}-headers.txt" | tr -d '\r ')
+            test "$cache_control" = "public,max-age=60,must-revalidate"
+          done
+
+      - name: Install locked R2 adapter
+        run: uv sync --frozen --extra r2
+
+      - name: Reproduce candidate R2 plan
+        run: |
+          uv run --frozen neuralstock r2 plan \
+            --root dist/production-release >dist/deploy-r2-plan.json
+          cmp \
+            dist/release-candidate/r2-plan.json \
+            dist/deploy-r2-plan.json
+
+      - name: Verify durable release-lock evidence
+        if: inputs.phase == 'publish'
+        env:
+          EXPECTED_BUCKET: ${{ vars.NEURALSTOCK_R2_BUCKET || 'neuralstock-public' }}
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          asset_name="neuralstock-r2-release-lock-$EXPECTED_REVISION.json"
+          evidence_dir=dist/retention-evidence
+          mkdir -p "$evidence_dir"
+          gh release download "v$RELEASE_VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "$asset_name" \
+            --dir "$evidence_dir"
+          evidence_path="$evidence_dir/$asset_name"
+          test -f "$evidence_path"
+          test "$(sha256sum "$evidence_path" | awk '{print $1}')" = \
+            "$RETENTION_EVIDENCE_SHA256"
+          uv run --frozen python tools/verify-r2-release-lock-evidence.py \
+            "$evidence_path" \
+            dist/deploy-r2-plan.json \
+            "$EXPECTED_REVISION" \
+            "$EXPECTED_BUCKET"
+
+      - name: Reconcile the canonical www redirect
+        if: inputs.phase == 'publish'
+        env:
+          CLOUDFLARE_REDIRECT_API_TOKEN: ${{ secrets.CLOUDFLARE_REDIRECT_API_TOKEN }}
+          NEURALSTOCK_CLOUDFLARE_ZONE_ID: ${{ vars.NEURALSTOCK_CLOUDFLARE_ZONE_ID }}
+        run: sh tools/configure-cloudflare-www-redirect.sh
+
+      - name: Capture mutable aliases before immutable bootstrap
+        if: inputs.phase == 'immutable-bootstrap'
+        run: |
+          mkdir -p dist/alias-guard-before
+          for alias_key in registry.json snapshots/latest.json; do
+            curl --fail --silent --show-error \
+              --header 'Cache-Control: no-cache' \
+              "https://assets.neuralstock.ai/$alias_key?phase_a_guard=$GITHUB_RUN_ID" \
+              --output "dist/alias-guard-before/${alias_key##*/}"
+          done
+
+      - name: Preflight fresh v0.2 contract namespace
+        if: inputs.phase == 'immutable-bootstrap'
+        run: tools/verify-contract-origin.sh --allow-absent dist/production-release
+
+      - name: Stage immutable release graph without aliases
+        if: inputs.phase == 'immutable-bootstrap'
+        env:
+          NEURALSTOCK_R2_ACCESS_KEY_ID: ${{ secrets.NEURALSTOCK_R2_ACCESS_KEY_ID }}
+          NEURALSTOCK_R2_SECRET_ACCESS_KEY: ${{ secrets.NEURALSTOCK_R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.NEURALSTOCK_R2_BUCKET || 'neuralstock-public' }}
+          R2_ENDPOINT_URL: ${{ secrets.NEURALSTOCK_R2_ENDPOINT_URL }}
+        run: |
+          uv run --frozen neuralstock r2 sync \
+            --immutable-only \
+            --root dist/production-release \
+            --bucket "$R2_BUCKET" \
+            --endpoint-url "$R2_ENDPOINT_URL" \
+            | tee dist/immutable-bootstrap-result.json
+          jq --exit-status \
+            '.aliases_updated == [] and .immutable_only == true and .mode == "immutable-only"' \
+            dist/immutable-bootstrap-result.json >/dev/null
+
+      - name: Prove immutable bootstrap did not change aliases
+        if: inputs.phase == 'immutable-bootstrap'
+        run: |
+          mkdir -p dist/alias-guard-after
+          for alias_key in registry.json snapshots/latest.json; do
+            curl --fail --silent --show-error \
+              --header 'Cache-Control: no-cache' \
+              "https://assets.neuralstock.ai/$alias_key?phase_a_guard=$GITHUB_RUN_ID-after" \
+              --output "dist/alias-guard-after/${alias_key##*/}"
+            cmp \
+              "dist/alias-guard-before/${alias_key##*/}" \
+              "dist/alias-guard-after/${alias_key##*/}"
+          done
+
+      - name: Publish verified graph aliases to R2
+        if: inputs.phase == 'publish'
+        env:
+          NEURALSTOCK_R2_ACCESS_KEY_ID: ${{ secrets.NEURALSTOCK_R2_ACCESS_KEY_ID }}
+          NEURALSTOCK_R2_SECRET_ACCESS_KEY: ${{ secrets.NEURALSTOCK_R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.NEURALSTOCK_R2_BUCKET || 'neuralstock-public' }}
+          R2_ENDPOINT_URL: ${{ secrets.NEURALSTOCK_R2_ENDPOINT_URL }}
+        run: |
+          uv run --frozen neuralstock r2 sync \
+            --root dist/production-release \
+            --bucket "$R2_BUCKET" \
+            --endpoint-url "$R2_ENDPOINT_URL"
+
+      - name: Verify canonical schemas and profile
+        run: |
+          attempt=1
+          while ! tools/verify-contract-origin.sh dist/production-release; do
+            if test "$attempt" -ge 25; then
+              echo "canonical contract origin did not converge" >&2
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            sleep 5
+          done
+
+      - name: Upload immutable bootstrap evidence
+        if: inputs.phase == 'immutable-bootstrap'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: immutable-bootstrap-evidence
+          path: |
+            dist/deploy-r2-plan.json
+            dist/immutable-bootstrap-result.json
+            dist/alias-guard-before
+            dist/alias-guard-after
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Build production website
+        if: inputs.phase == 'publish' && inputs.deploy_site
+        env:
+          VITE_NEURALSTOCK_REGISTRY_URL: https://assets.neuralstock.ai/registry.json
+        run: pnpm --filter @neuralstock/room-zero build
+
+      - name: Deploy website to Cloudflare Pages
+        if: inputs.phase == 'publish' && inputs.deploy_site
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PAGES_PROJECT: ${{ vars.NEURALSTOCK_PAGES_PROJECT || 'neuralstock' }}
+        run: |
+          pnpm wrangler pages deploy examples/room-zero/dist \
+            --project-name "$PAGES_PROJECT" \
+            --branch main \
+            --commit-hash "$GITHUB_SHA" \
+            --commit-dirty=false
+
+      - name: Verify live revision and site
+        if: inputs.phase == 'publish'
+        env:
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          NEURALSTOCK_VERIFY_ATTEMPTS: "25"
+          NEURALSTOCK_VERIFY_DELAY_SECONDS: "5"
+        run: |
+          sh tools/verify-production.sh \
+            "$EXPECTED_REVISION" \
+            dist/production-release
+
+      - name: Record immutable bootstrap retention handoff
+        if: inputs.phase == 'immutable-bootstrap'
+        env:
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+        run: |
+          rule_name="snapshot-$(printf '%s' "$EXPECTED_REVISION" | cut -c1-16)"
+          {
+            echo "## Immutable bootstrap complete — manual retention gate required"
+            echo
+            echo "All candidate immutable objects were staged without either mutable alias."
+            echo "The v0.2 public contracts match the candidate. This run does not hold the"
+            echo "account-wide R2 bucket-configuration authority required for bucket locks."
+            echo "Do not dispatch the publish phase until an operator creates and reads back:"
+            echo
+            echo "- Rule: \`schema-v0.2\`; prefix: \`v0.2/\`; enabled indefinitely"
+            echo "- Rule: \`profile-v0.2\`; prefix: \`profiles/v0.2/\`; enabled indefinitely"
+            echo "- Rule: \`$rule_name\`"
+            echo "- Prefix: \`snapshots/$EXPECTED_REVISION/\`"
+            echo "- Condition: enabled, indefinite"
+            echo "- Release commit: \`$GITHUB_SHA\`"
+            echo
+            echo '```sh'
+            echo "tools/manage-r2-release-lock.sh $EXPECTED_REVISION --release-root <release-root> --apply"
+            echo "tools/manage-r2-release-lock.sh $EXPECTED_REVISION --release-root <release-root>"
+            echo '```'
+            echo
+            echo "Hash and durably retain both credential-free JSON readbacks. Upload the"
+            echo "check-only JSON under its deterministic GitHub Release asset name, then"
+            echo "supply only that exact asset's SHA-256 to the publish dispatch."
+            echo "Also record dashboard confirmation. Do not store an R2 configuration token."
+          } >>"$GITHUB_STEP_SUMMARY"
+          echo "::warning title=Manual release retention gate required::Lock the two v0.2 contract prefixes and exact revision snapshot before dispatching publish."
+
+      - name: Record accepted retention evidence
+        if: inputs.phase == 'publish'
+        env:
+          EXPECTED_REVISION: ${{ inputs.registry_revision }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RETENTION_EVIDENCE_SHA256: ${{ inputs.retention_evidence_sha256 }}
+        run: |
+          {
+            echo "## Production publication complete"
+            echo
+            echo "The publish phase required Phase A lock evidence before aliases or the site"
+            echo "were updated. Immutable content was reverified and the full public contract"
+            echo "passed after publication."
+            echo
+            echo "- Lock readback SHA-256: \`$RETENTION_EVIDENCE_SHA256\`"
+            echo "- Lock evidence: GitHub release \`v$RELEASE_VERSION\` asset"
+            echo "  \`neuralstock-r2-release-lock-$EXPECTED_REVISION.json\`"
+            echo "- Release commit: \`$GITHUB_SHA\`"
+          } >>"$GITHUB_STEP_SUMMARY"

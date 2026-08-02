@@ -1,0 +1,50 @@
+name: Rights or withdrawal report
+description: Request review of a published asset's rights, privacy, or provenance.
+title: "[rights review]: "
+labels:
+  - rights-review
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Do not post addresses, identity documents, private
+        correspondence, signatures, or other sensitive evidence. A maintainer
+        will provide a private channel when confidential evidence is necessary.
+  - type: input
+    id: asset
+    attributes:
+      label: Asset reference
+      placeholder: asset_id@1.0.1
+    validations:
+      required: true
+  - type: dropdown
+    id: concern
+    attributes:
+      label: Concern
+      options:
+        - Copyright or license provenance
+        - Trademark or distinctive design
+        - Privacy or personality rights
+        - Malformed or misleading provenance
+        - Other legal concern
+    validations:
+      required: true
+  - type: textarea
+    id: public_basis
+    attributes:
+      label: Public basis for review
+      description: Provide non-sensitive facts and public links sufficient to triage the report.
+    validations:
+      required: true
+  - type: input
+    id: notice
+    attributes:
+      label: Existing public notice or source URL
+      description: Optional; do not link to private documents.
+  - type: checkboxes
+    id: accuracy
+    attributes:
+      label: Confirmation
+      options:
+        - label: I believe this report is accurate and am submitting it in good faith.
+          required: true

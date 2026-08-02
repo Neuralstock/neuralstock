@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "chair_01",
+  "version": "1.0.1",
+  "name": "Wooden chair",
+  "description": "A compact wooden chair with a stable seat anchor for dining, desk, and room layouts.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "41cd843da9ce62a4670f7529e94c3597190fe2bf76d13b953b9576272c9be982"
+  },
+  "semantics": {
+    "categories": [
+      "furniture",
+      "seating"
+    ],
+    "tags": [
+      "chair",
+      "dining-chair",
+      "wooden"
+    ],
+    "affordances": [
+      "sit"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": null,
+    "parameters": {}
+  },
+  "required_anchors": [
+    "ANCHOR_back_center",
+    "ANCHOR_seat_surface"
+  ]
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://neuralstock.ai/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url><loc>https://neuralstock.ai/asset/book_stack_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/cabinet_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/chair_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/desk_lamp_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/monitor_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/mug_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/potted_plant_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/procedural_crate_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/procedural_table_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/room_door_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/room_floor_panel_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/room_wall_panel_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/room_window_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/shelf_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+  <url><loc>https://neuralstock.ai/asset/stool_01/1.0.1</loc><changefreq>never</changefreq><priority>0.7</priority></url>
+</urlset>

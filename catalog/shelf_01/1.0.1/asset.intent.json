@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "shelf_01",
+  "version": "1.0.1",
+  "name": "Procedural shelving unit",
+  "description": "A bounded procedural shelving unit with four support-surface anchors for storage and room dressing.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "9baacc6a14148c075480e6901e4e2c963c72f4e6c4192abde77ea9f854c8f786"
+  },
+  "semantics": {
+    "categories": [
+      "furniture",
+      "storage"
+    ],
+    "tags": [
+      "bookcase",
+      "shelf",
+      "storage"
+    ],
+    "affordances": [
+      "storage",
+      "support-surface"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "ShelfGenerator",
+    "parameters": {
+      "depth_m": {
+        "agent_safe": true,
+        "default": 0.35,
+        "description": "Overall shelving-unit depth in meters.",
+        "label": "Depth",
+        "maximum": 0.8,
+        "minimum": 0.2,
+        "type": "float",
+        "unit": "meter"
+      },
+      "height_m": {
+        "agent_safe": true,
+        "default": 1.8,
+        "description": "Overall shelving-unit height in meters.",
+        "label": "Height",
+        "maximum": 3.0,
+        "minimum": 0.7,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 0.9,
+        "description": "Overall shelving-unit width in meters.",
+        "label": "Width",
+        "maximum": 2.4,
+        "minimum": 0.45,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_shelf_base_surface",
+    "ANCHOR_shelf_lower_surface",
+    "ANCHOR_shelf_middle_surface",
+    "ANCHOR_shelf_top_surface"
+  ]
+}

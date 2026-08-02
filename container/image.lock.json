@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "image": "neuralstock-blender",
+  "platform": "linux/amd64",
+  "manifest_digest": "sha256:e458059a9a783f8e54ac746361494a1b64d892f66a9f797f498bd11351531298",
+  "config_digest": "sha256:dbf4c5a833b81b63bbec7eb04121056ccc5242aaa5561e3ce7680117d9181eed",
+  "created": "2026-08-01T00:00:00Z",
+  "source_date_epoch": 1785542400,
+  "dockerfile_frontend": "docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e",
+  "buildkit_image": "moby/buildkit:v0.30.0@sha256:0168606be2315b7c807a03b3d8aa79beefdb31c98740cebdffdfeebf31190c9f",
+  "exporter": "type=docker,rewrite-timestamp=true,compression=gzip,compression-level=6,oci-mediatypes=false",
+  "base_image": "ubuntu:24.04@sha256:4fbb8e6a8395de5a7550b33509421a2bafbc0aab6c06ba2cef9ebffbc7092d90",
+  "ubuntu_snapshot": "20260731T000000Z",
+  "blender_version": "4.5.12",
+  "blender_archive_sha256": "95e3a2dfedba3bd32ca54fc355eac6b15a11986954ccb02815a07535d0120a25"
+}

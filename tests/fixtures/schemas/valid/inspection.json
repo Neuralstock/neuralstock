@@ -1,0 +1,107 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/inspection.schema.json",
+  "schema_version": "0.2",
+  "document_type": "inspection",
+  "generated": true,
+  "asset": {
+    "id": "procedural_crate_01",
+    "version": "1.0.0"
+  },
+  "generated_at": "2026-08-01T12:05:00Z",
+  "generator": {
+    "tool": "neuralstock-inspect",
+    "version": "0.1.0",
+    "commit_sha": "1111111111111111111111111111111111111111"
+  },
+  "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target_profile": "web-v1",
+  "coordinate_system": {
+    "unit": "meter",
+    "meters_per_unit": 1,
+    "up_axis": "Z",
+    "forward_axis": "-Y",
+    "handedness": "right",
+    "space": "asset-local"
+  },
+  "bounds_m": {
+    "minimum": [-0.4, -0.3, 0],
+    "maximum": [0.4, 0.3, 0.6],
+    "dimensions": [0.8, 0.6, 0.6]
+  },
+  "origin": {
+    "policy": "ground-center-of-evaluated-bounds",
+    "position_m": [0, 0, 0]
+  },
+  "geometry": {
+    "mesh_count": 1,
+    "vertex_count": 1240,
+    "triangle_count": 2380,
+    "primitive_count": 1
+  },
+  "materials": {
+    "count": 1,
+    "names": ["Wood"]
+  },
+  "textures": {
+    "count": 0,
+    "total_bytes": 0,
+    "max_dimension_px": 0,
+    "all_packed": true,
+    "items": []
+  },
+  "anchors": [
+    {
+      "name": "ANCHOR_top_center",
+      "position_m": [0, 0, 0.6],
+      "rotation_xyzw": [0, 0, 0, 1],
+      "semantic": "top-center"
+    }
+  ],
+  "collisions": [
+    {
+      "name": "COLLISION_main",
+      "kind": "box",
+      "bounds_m": {
+        "minimum": [-0.4, -0.3, 0.0],
+        "maximum": [0.4, 0.3, 0.6],
+        "dimensions": [0.8, 0.6, 0.6]
+      },
+      "vertex_count": 8,
+      "triangle_count": 12
+    }
+  ],
+  "parameters": {
+    "node_group": "CrateGenerator",
+    "inputs": {
+      "width_meters": {
+        "type": "float",
+        "default": 0.8,
+        "minimum": 0.4,
+        "maximum": 2.0,
+        "unit": "meter",
+        "agent_safe": true
+      }
+    }
+  },
+  "gltf_validation": {
+    "validator_version": "2.0.0-dev.3.10",
+    "status": "pass",
+    "errors": 0,
+    "warnings": 0
+  },
+  "profile_validation": {
+    "status": "pass",
+    "checks": [
+      {
+        "code": "web-v1.resources-packed",
+        "status": "pass",
+        "message": "All source resources are packed."
+      },
+      {
+        "code": "web-v1.origin",
+        "status": "pass",
+        "message": "Origin matches the ground-center policy."
+      }
+    ]
+  }
+}

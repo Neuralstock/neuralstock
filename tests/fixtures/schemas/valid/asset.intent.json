@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "procedural_crate_01",
+  "version": "1.0.0",
+  "name": "Procedural shipping crate",
+  "description": "A configurable wooden shipping crate for rooms, warehouses, and game scenes.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "semantics": {
+    "categories": ["props", "storage"],
+    "tags": ["crate", "wood", "shipping"],
+    "affordances": ["stackable", "support-surface"],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "CrateGenerator",
+    "parameters": {
+      "width_meters": {
+        "type": "float",
+        "label": "Width",
+        "default": 0.8,
+        "minimum": 0.4,
+        "maximum": 2.0,
+        "step": 0.05,
+        "unit": "meter",
+        "agent_safe": true
+      },
+      "slat_count": {
+        "type": "integer",
+        "default": 5,
+        "minimum": 3,
+        "maximum": 12,
+        "step": 1,
+        "unit": "unitless",
+        "agent_safe": true
+      },
+      "reinforced": {
+        "type": "boolean",
+        "default": true,
+        "agent_safe": true
+      },
+      "wood_style": {
+        "type": "enum",
+        "default": "plain",
+        "options": ["plain", "aged", "painted"],
+        "agent_safe": true
+      }
+    }
+  },
+  "required_anchors": ["ANCHOR_top_center"]
+}

@@ -1,0 +1,148 @@
+name: Package candidate
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build attested package candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Verify protected package tag on main
+        id: release_tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF_TYPE" = tag
+          case "$GITHUB_REF_NAME" in
+            v*) release_version=${GITHUB_REF_NAME#v} ;;
+            *) exit 1 ;;
+          esac
+          tools/verify-release-tag.sh "$release_version" "$GITHUB_SHA"
+          echo "version=$release_version" >>"$GITHUB_OUTPUT"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          package-manager-cache: false
+
+      - name: Install locked dependencies
+        run: |
+          uv sync --frozen --extra dev
+          pnpm install --frozen-lockfile
+
+      - name: Validate package version and repository identity
+        env:
+          RELEASE_VERSION: ${{ steps.release_tag.outputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          python - <<'PY'
+          import ast
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          init_path = Path("src/neuralstock/__init__.py")
+          module = ast.parse(init_path.read_text(), filename=str(init_path))
+          version = None
+          for node in module.body:
+              if not isinstance(node, ast.Assign):
+                  continue
+              if any(isinstance(target, ast.Name) and target.id == "__version__" for target in node.targets):
+                  version = ast.literal_eval(node.value)
+                  break
+          if not isinstance(version, str) or re.fullmatch(
+              r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", version
+          ) is None:
+              raise SystemExit("Python package version must be a plain semantic version")
+          for package_path in (Path("package.json"), Path("packages/client/package.json")):
+              package = json.loads(package_path.read_text())
+              if package.get("version") != version:
+                  raise SystemExit(f"Python package version differs from {package_path}")
+          package = json.loads(Path("packages/client/package.json").read_text())
+          repository = package.get("repository")
+          if not isinstance(repository, dict) or repository.get("url") != "https://github.com/Neuralstock/neuralstock":
+              raise SystemExit("npm repository URL is not canonical")
+          if os.environ["REF_TYPE"] != "tag" or os.environ["REF_NAME"] != f"v{version}":
+              raise SystemExit("package tag does not match package version")
+          if os.environ["RELEASE_VERSION"] != version:
+              raise SystemExit("verified release tag does not match package version")
+          PY
+
+      - name: Run package gates
+        run: |
+          uv run --frozen ruff format --check blender src tests
+          uv run --frozen ruff check blender src tests
+          uv run --frozen pytest
+          pnpm check
+          pnpm test
+          pnpm build
+
+      - name: Build Python and npm archives
+        run: |
+          mkdir -p \
+            dist/package-build/python \
+            dist/package-candidate/python \
+            dist/package-candidate/npm
+          uv build --sdist --wheel --out-dir dist/package-build/python
+          wheel=$(find dist/package-build/python -maxdepth 1 -type f -name '*.whl')
+          sdist=$(find dist/package-build/python -maxdepth 1 -type f -name '*.tar.gz')
+          test "$(printf '%s\n' "$wheel" | sed '/^$/d' | wc -l)" -eq 1
+          test "$(printf '%s\n' "$sdist" | sed '/^$/d' | wc -l)" -eq 1
+          cp "$wheel" "$sdist" dist/package-candidate/python/
+          pnpm --filter @neuralstock/client pack --pack-destination "$GITHUB_WORKSPACE/dist/package-candidate/npm"
+          test "$(find dist/package-candidate/npm -maxdepth 1 -type f -name '*.tgz' | wc -l | tr -d ' ')" -eq 1
+          find dist/package-candidate -type f ! -name SHA256SUMS -print0 \
+            | sort --zero-terminated \
+            | xargs --null sha256sum \
+            >dist/package-candidate/SHA256SUMS
+          sha256sum --check --strict dist/package-candidate/SHA256SUMS
+
+      - name: Attest package archives
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: |
+            dist/package-candidate/python/*
+            dist/package-candidate/npm/*
+            dist/package-candidate/SHA256SUMS
+
+      - name: Upload package candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: package-candidate
+          path: dist/package-candidate
+          if-no-files-found: error
+          retention-days: 14

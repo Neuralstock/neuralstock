@@ -1,0 +1,23 @@
+# The initial repository owner is the fallback until a second qualified
+# maintainer exists. Before applying `--reviewer LOGIN`, add `@LOGIN` beside the
+# owner on the global and protected-path entries below; the reconciler refuses
+# reviewer mode until it finds that login in this file.
+* @bighippoman
+
+/.github/ @bighippoman
+/catalog/ @bighippoman
+/schemas/ @bighippoman
+/profiles/ @bighippoman
+/container/ @bighippoman
+/blender/ @bighippoman
+/src/neuralstock/release.py @bighippoman
+/src/neuralstock/package.py @bighippoman
+/src/neuralstock/registry.py @bighippoman
+/tools/release-room-zero.sh @bighippoman
+/tools/package-release-candidate.sh @bighippoman
+/tools/verify-release-candidate.sh @bighippoman
+/tools/verify-release-tag.sh @bighippoman
+/docs/releases/ @bighippoman
+/ASSET-LICENSE.md @bighippoman
+/GOVERNANCE.md @bighippoman
+/SECURITY.md @bighippoman

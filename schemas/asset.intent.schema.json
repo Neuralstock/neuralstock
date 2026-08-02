@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "title": "NeuralStock authored asset intent v0.2",
+  "x-neuralstock-document-license": {"spdx_id":"MIT","copyright":"Copyright (c) 2026 NeuralStock contributors","license_uri":"https://schemas.neuralstock.ai/v0.2/LICENSE","license_sha256":"db925e3df4ed5c6de89e903dd30ecb004f6ba4ae63d9aa98d8570ef50be87200","license_text":"MIT License\n\nCopyright (c) 2026 NeuralStock contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"},
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "document_type",
+    "id",
+    "version",
+    "name",
+    "description",
+    "license",
+    "target_profile",
+    "source",
+    "semantics",
+    "blender_source",
+    "required_anchors"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json"
+    },
+    "schema_version": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/schemaVersion"
+    },
+    "document_type": { "const": "asset-intent" },
+    "id": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/assetId"
+    },
+    "version": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/semanticVersion"
+    },
+    "name": { "type": "string", "minLength": 3, "maxLength": 100 },
+    "description": { "type": "string", "minLength": 20, "maxLength": 2000 },
+    "license": { "const": "CC0-1.0" },
+    "target_profile": { "const": "web-v1" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "sha256"],
+      "properties": {
+        "file": { "const": "source.blend" },
+        "sha256": {
+          "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "semantics": {
+      "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/semantics"
+    },
+    "blender_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collection", "geometry_node_group", "parameters"],
+      "properties": {
+        "collection": { "const": "ASSET" },
+        "geometry_node_group": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Za-z][A-Za-z0-9_ ]*$",
+          "maxLength": 100
+        },
+        "parameters": {
+          "$ref": "https://schemas.neuralstock.ai/v0.2/common.schema.json#/$defs/parameterMap"
+        }
+      }
+    },
+    "required_anchors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^ANCHOR_[a-z][a-z0-9_]*$",
+        "maxLength": 96
+      },
+      "maxItems": 32,
+      "uniqueItems": true
+    },
+    "notes": { "type": "string", "maxLength": 2000 }
+  }
+}

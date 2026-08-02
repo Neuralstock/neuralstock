@@ -1,0 +1,12 @@
+**
+!blender/
+!blender/**
+blender/__pycache__/
+blender/**/*.pyc
+!LICENSE
+!container/
+!container/Dockerfile
+!container/entrypoint.sh
+!container/THIRD_PARTY_NOTICES.md
+!container/ubuntu.sources
+!container/ubuntu-*.lock

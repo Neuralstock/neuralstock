@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/asset.intent.schema.json",
+  "schema_version": "0.2",
+  "document_type": "asset-intent",
+  "id": "room_door_01",
+  "version": "1.0.1",
+  "name": "Procedural room door",
+  "description": "A bounded procedural framed room door with hinge and handle anchors for modular interior construction.",
+  "license": "CC0-1.0",
+  "target_profile": "web-v1",
+  "source": {
+    "file": "source.blend",
+    "sha256": "3b5bf2605a839cfe13565796267e47d4c25a7d66b1c8624bf00499864f5d9fda"
+  },
+  "semantics": {
+    "categories": [
+      "architecture",
+      "openings"
+    ],
+    "tags": [
+      "door",
+      "doorway",
+      "frame",
+      "modular"
+    ],
+    "affordances": [
+      "openable",
+      "passage"
+    ],
+    "placement": "floor"
+  },
+  "blender_source": {
+    "collection": "ASSET",
+    "geometry_node_group": "DoorGenerator",
+    "parameters": {
+      "height_m": {
+        "agent_safe": true,
+        "default": 2.1,
+        "description": "Outer frame height.",
+        "label": "Height",
+        "maximum": 4.0,
+        "minimum": 1.2,
+        "type": "float",
+        "unit": "meter"
+      },
+      "thickness_m": {
+        "agent_safe": true,
+        "default": 0.14,
+        "description": "Outer frame depth.",
+        "label": "Thickness",
+        "maximum": 0.5,
+        "minimum": 0.06,
+        "type": "float",
+        "unit": "meter"
+      },
+      "width_m": {
+        "agent_safe": true,
+        "default": 0.95,
+        "description": "Outer frame width.",
+        "label": "Width",
+        "maximum": 2.2,
+        "minimum": 0.55,
+        "type": "float",
+        "unit": "meter"
+      }
+    }
+  },
+  "required_anchors": [
+    "ANCHOR_handle",
+    "ANCHOR_hinge"
+  ]
+}

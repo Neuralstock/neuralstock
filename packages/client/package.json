@@ -1,0 +1,59 @@
+{
+  "name": "@neuralstock/client",
+  "version": "0.1.0",
+  "description": "Small, metadata-first client for the NeuralStock asset registry",
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "author": "NeuralStock contributors",
+  "homepage": "https://neuralstock.ai/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Neuralstock/neuralstock",
+    "directory": "packages/client"
+  },
+  "bugs": {
+    "url": "https://github.com/Neuralstock/neuralstock/issues"
+  },
+  "keywords": [
+    "3d",
+    "assets",
+    "blender",
+    "cc0",
+    "glb",
+    "gltf",
+    "threejs"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "pnpm run build",
+    "test": "vitest run && pnpm run test:package",
+    "test:package": "pnpm run build && node ./scripts/package-smoke.mjs",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

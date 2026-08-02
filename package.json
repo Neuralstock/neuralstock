@@ -1,0 +1,42 @@
+{
+  "name": "@neuralstock-smoke/neuralstock-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.3",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "bundle:gltf-validator": "esbuild tools/validate-gltf.mjs --bundle --platform=node --format=cjs --target=node20 --outfile=src/neuralstock/data/tools/validate-gltf.bundle.cjs --legal-comments=linked",
+    "check": "pnpm -r --if-present typecheck",
+    "dev": "pnpm --filter @neuralstock/room-zero dev",
+    "test": "pnpm run test:tools && pnpm -r --if-present test && pnpm run test:e2e:if-release",
+    "test:e2e": "pnpm --filter @neuralstock/room-zero test:e2e",
+    "test:e2e:if-release": "node tools/run-e2e-if-release.mjs",
+    "test:tools": "node --test tools/*.test.mjs"
+  },
+  "dependencies": {
+    "gltf-validator": "2.0.0-dev.3.10"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "wrangler": "4.118.0"
+  },
+  "description": "NeuralStock is an open, agent-native registry of CC0 Blender assets. Every published asset pairs an editable `.blend` source with a validated GLB runtime artifact, semantic metadata, provenance, inspection results, and a reproducible build receipt.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Neuralstock/neuralstock.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Neuralstock/neuralstock/issues"
+  },
+  "homepage": "https://github.com/Neuralstock/neuralstock#readme"
+}

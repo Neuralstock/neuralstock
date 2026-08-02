@@ -1,0 +1,91 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/build-receipt.schema.json",
+  "schema_version": "0.2",
+  "document_type": "build-receipt",
+  "generated": true,
+  "asset": {
+    "id": "procedural_crate_01",
+    "version": "1.0.0"
+  },
+  "build_id": "build_fixture_001",
+  "build_key": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "started_at": "2026-08-01T12:00:00Z",
+  "completed_at": "2026-08-01T12:06:00Z",
+  "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "parameters": {
+    "width_meters": 0.8,
+    "slat_count": 5,
+    "reinforced": true,
+    "wood_style": "plain"
+  },
+  "normalized_parameters_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "target_profile": "web-v1",
+  "builder": {
+    "tool": "neuralstock-build",
+    "version": "0.1.0",
+    "commit_sha": "1111111111111111111111111111111111111111"
+  },
+  "environment": {
+    "blender_version": "4.5.2",
+    "image_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "platform": "linux/amd64"
+  },
+  "export": {
+    "format": "GLB",
+    "geometry_compression": "none",
+    "materials": "PBR-metallic-roughness",
+    "animations": false
+  },
+  "inputs": [
+    {
+      "role": "source",
+      "file_name": "source.blend",
+      "media_type": "application/x-blender",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bytes": 500000,
+      "uri": "/objects/sha256/aa/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "role": "provenance",
+      "file_name": "provenance.json",
+      "media_type": "application/json",
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "bytes": 1500,
+      "uri": "/objects/sha256/ee/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ],
+  "outputs": [
+    {
+      "role": "runtime",
+      "file_name": "model.glb",
+      "media_type": "model/gltf-binary",
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "bytes": 220000,
+      "uri": "/objects/sha256/ff/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    {
+      "role": "inspection",
+      "file_name": "inspection.json",
+      "media_type": "application/json",
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "bytes": 2400,
+      "uri": "/objects/sha256/99/9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "role": "preview",
+      "file_name": "preview.png",
+      "media_type": "image/png",
+      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "bytes": 60000,
+      "uri": "/objects/sha256/88/8888888888888888888888888888888888888888888888888888888888888888"
+    }
+  ],
+  "validation": {
+    "status": "pass",
+    "inspection_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+  },
+  "reproducibility": {
+    "status": "not-yet-reproduced",
+    "allowed_nondeterminism": []
+  }
+}

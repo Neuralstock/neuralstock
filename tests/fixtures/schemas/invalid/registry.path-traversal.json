@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schemas.neuralstock.ai/v0.2/registry.schema.json",
+  "schema_version": "0.2",
+  "document_type": "registry",
+  "generated": true,
+  "revision": "6666666666666666666666666666666666666666666666666666666666666666",
+  "generated_at": "2026-08-01T12:15:00Z",
+  "profiles": ["web-v1"],
+  "entries": [
+    {
+      "asset": {
+        "id": "procedural_crate_01",
+        "version": "1.0.0"
+      },
+      "name": "Procedural shipping crate",
+      "description": "A registry fixture with an unsafe relative manifest path that escapes its base.",
+      "license": "CC0-1.0",
+      "target_profile": "web-v1",
+      "coordinate_system": {
+        "unit": "meter",
+        "meters_per_unit": 1,
+        "up_axis": "Y",
+        "forward_axis": "+Z",
+        "handedness": "right",
+        "space": "asset-local"
+      },
+      "semantics": {
+        "categories": ["props"],
+        "tags": ["crate"],
+        "affordances": ["stackable"],
+        "placement": "floor"
+      },
+      "bounds_m": {
+        "minimum": [-0.4, 0, -0.3],
+        "maximum": [0.4, 0.6, 0.3],
+        "dimensions": [0.8, 0.6, 0.6]
+      },
+      "triangle_count": 2380,
+      "manifest": {
+        "role": "manifest",
+        "file_name": "asset.json",
+        "media_type": "application/json",
+        "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "bytes": 4800,
+        "uri": "../../private/asset.json"
+      }
+    }
+  ],
+  "aliases": [
+    {
+      "id": "procedural_crate_01",
+      "alias": "latest",
+      "version": "1.0.0"
+    }
+  ],
+  "withdrawals": []
+}
