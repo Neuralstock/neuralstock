@@ -66,6 +66,12 @@ and requires an exact 301 `Location` at the apex with the same path and query.
 A successful `HEAD`, a followed 200, or a redirect that drops either component
 does not pass.
 
+During a deployment, `NEURALSTOCK_VERIFY_ATTEMPTS` applies to the exact
+machine-discovery document, sitemap, and registry alias so independently
+propagating Pages and R2 cache entries can converge. Every successful read is
+still checked byte-for-byte and then subjected to the complete header and
+semantic contract; a persistent mismatch fails closed.
+
 ## Historical preview evidence
 
 The preview revision and its `assets/*/1.0.0/manifest.json` keys are immutable
@@ -217,6 +223,11 @@ The scheduled `Production health` workflow checks:
 - aliases and discovery expose their short revalidating policies while
   immutable snapshots, manifests, objects, schemas, and profiles expose the
   one-year immutable policy.
+
+The full GLB response must advertise `Accept-Ranges: bytes`. The partial
+response is proven by its 206 status, exact `Content-Range`, byte count, and
+content; it need not repeat the advisory `Accept-Ranges` field, consistent with
+[RFC 9110 section 14.3](https://www.rfc-editor.org/rfc/rfc9110.html#section-14.3).
 
 Daily, review failed scheduled runs and Cloudflare service alerts. Weekly:
 

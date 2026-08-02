@@ -177,6 +177,20 @@ class _Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
         if kind == "site":
+            stale_paths = self.server.stale_paths  # type: ignore[attr-defined]
+            if stale_paths.get(path, 0) > 0:
+                stale_paths[path] -= 1
+                if path == "/.well-known/neuralstock.json":
+                    self._send(
+                        200,
+                        b'{"stale":true}\n',
+                        "application/json; charset=utf-8",
+                        cache_control="public, max-age=300, stale-while-revalidate=86400",
+                        cors=True,
+                    )
+                else:
+                    self._send(200, b"<stale/>\n", "application/xml")
+                return
             if path == "/.well-known/neuralstock.json":
                 self._send(
                     200,
@@ -268,7 +282,6 @@ class _Handler(BaseHTTPRequestHandler):
                     content_type,
                     cache_control=IMMUTABLE_CACHE,
                     cors=True,
-                    ranges=True,
                     extra={"Content-Range": f"bytes 0-{last}/{len(body)}"},
                 )
             else:
@@ -289,6 +302,7 @@ def _server(kind: str, fixture: dict[str, Any]) -> Iterator[ThreadingHTTPServer]
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
     server.kind = kind  # type: ignore[attr-defined]
     server.fixture = fixture  # type: ignore[attr-defined]
+    server.stale_paths = {}  # type: ignore[attr-defined]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -345,3 +359,106 @@ def test_complete_production_verifier_accepts_matching_public_contract(
 
     assert completed.returncode == 0, completed.stderr
     assert "Verified NeuralStock production revision" in completed.stdout
+
+
+def test_production_verifier_retries_exact_pages_artifacts(tmp_path: Path) -> None:
+    fixture = _fixture()
+    release_root = tmp_path / "release"
+    release_root.mkdir()
+    (release_root / "registry.json").write_bytes(fixture["registry"])
+    for relative in (Path("v0.2/LICENSE"), Path("profiles/v0.2/LICENSE")):
+        target = release_root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / "LICENSE").read_bytes())
+
+    with ExitStack() as stack:
+        asset = stack.enter_context(_server("asset", fixture))
+        schema = stack.enter_context(_server("schema", fixture))
+        site = stack.enter_context(_server("site", fixture))
+        www = stack.enter_context(_server("www", fixture))
+        www.site_origin = _origin(site)  # type: ignore[attr-defined]
+        site.stale_paths = {  # type: ignore[attr-defined]
+            "/.well-known/neuralstock.json": 1,
+            "/sitemap.xml": 1,
+        }
+        environment = {
+            **os.environ,
+            "NEURALSTOCK_VERIFY_ASSET_ORIGIN": _origin(asset),
+            "NEURALSTOCK_VERIFY_SCHEMA_ORIGIN": _origin(schema),
+            "NEURALSTOCK_VERIFY_SITE_ORIGIN": _origin(site),
+            "NEURALSTOCK_VERIFY_WWW_ORIGIN": _origin(www),
+            "NEURALSTOCK_VERIFY_ATTEMPTS": "3",
+            "NEURALSTOCK_VERIFY_DELAY_SECONDS": "0",
+        }
+        completed = subprocess.run(
+            [
+                "sh",
+                str(ROOT / "tools/verify-production.sh"),
+                fixture["registry_value"]["revision"],
+                str(release_root),
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+    assert completed.returncode == 0, completed.stderr
+    assert site.stale_paths == {  # type: ignore[attr-defined]
+        "/.well-known/neuralstock.json": 0,
+        "/sitemap.xml": 0,
+    }
+
+
+def test_production_verifier_fails_closed_when_pages_bytes_stay_stale(
+    tmp_path: Path,
+) -> None:
+    fixture = _fixture()
+    release_root = tmp_path / "release"
+    release_root.mkdir()
+    (release_root / "registry.json").write_bytes(fixture["registry"])
+    for relative in (Path("v0.2/LICENSE"), Path("profiles/v0.2/LICENSE")):
+        target = release_root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / "LICENSE").read_bytes())
+
+    with ExitStack() as stack:
+        asset = stack.enter_context(_server("asset", fixture))
+        schema = stack.enter_context(_server("schema", fixture))
+        site = stack.enter_context(_server("site", fixture))
+        www = stack.enter_context(_server("www", fixture))
+        www.site_origin = _origin(site)  # type: ignore[attr-defined]
+        site.stale_paths = {  # type: ignore[attr-defined]
+            "/.well-known/neuralstock.json": 3,
+        }
+        environment = {
+            **os.environ,
+            "NEURALSTOCK_VERIFY_ASSET_ORIGIN": _origin(asset),
+            "NEURALSTOCK_VERIFY_SCHEMA_ORIGIN": _origin(schema),
+            "NEURALSTOCK_VERIFY_SITE_ORIGIN": _origin(site),
+            "NEURALSTOCK_VERIFY_WWW_ORIGIN": _origin(www),
+            "NEURALSTOCK_VERIFY_ATTEMPTS": "2",
+            "NEURALSTOCK_VERIFY_DELAY_SECONDS": "0",
+        }
+        completed = subprocess.run(
+            [
+                "sh",
+                str(ROOT / "tools/verify-production.sh"),
+                fixture["registry_value"]["revision"],
+                str(release_root),
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+    assert completed.returncode == 65
+    assert "live machine discovery differs from discovery/neuralstock.json" in completed.stderr
+    assert site.stale_paths == {  # type: ignore[attr-defined]
+        "/.well-known/neuralstock.json": 1,
+    }

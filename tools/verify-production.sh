@@ -175,6 +175,27 @@ fetch() {
     "$url"
 }
 
+fetch_exact_with_retry() {
+  url=$1
+  expected_file=$2
+  header_file=$3
+  output_file=$4
+  mismatch_message=$5
+  exact_attempt=1
+  while :; do
+    fetch "$url" "$header_file" "$output_file"
+    if cmp "$expected_file" "$output_file" >/dev/null 2>&1; then
+      return
+    fi
+    if [ "$exact_attempt" -ge "$verification_attempts" ]; then
+      cmp "$expected_file" "$output_file" || true
+      fail "$mismatch_message"
+    fi
+    exact_attempt=$((exact_attempt + 1))
+    sleep "$verification_delay"
+  done
+}
+
 verify_descriptor() {
   file=$1
   expected_sha=$2
@@ -233,13 +254,12 @@ grep --fixed-strings '<title>NeuralStock' "$temporary_root/site.html" >/dev/null
   fail "site root does not contain the NeuralStock application shell"
 }
 
-fetch \
+fetch_exact_with_retry \
   "$site_origin/.well-known/neuralstock.json" \
+  "$discovery_source" \
   "$temporary_root/discovery.headers" \
-  "$temporary_root/discovery.json"
-cmp "$discovery_source" "$temporary_root/discovery.json" || {
-  fail "live machine discovery differs from discovery/neuralstock.json"
-}
+  "$temporary_root/discovery.json" \
+  "live machine discovery differs from discovery/neuralstock.json"
 require_content_type application/json "$temporary_root/discovery.headers" \
   "machine discovery"
 require_header cache-control "$discovery_cache_control" \
@@ -335,13 +355,12 @@ require_header cache-control "$immutable_cache_control" \
   "$temporary_root/snapshot.headers" "immutable revision snapshot"
 require_cors "$temporary_root/snapshot.headers" "immutable revision snapshot"
 
-fetch \
+fetch_exact_with_retry \
   "$site_origin/sitemap.xml" \
+  "$sitemap_source" \
   "$temporary_root/sitemap.headers" \
-  "$temporary_root/sitemap.xml"
-cmp "$sitemap_source" "$temporary_root/sitemap.xml" || {
-  fail "live sitemap differs from examples/room-zero/public/sitemap.xml"
-}
+  "$temporary_root/sitemap.xml" \
+  "live sitemap differs from examples/room-zero/public/sitemap.xml"
 sitemap_content_type=$(header_value content-type "$temporary_root/sitemap.headers")
 case "$sitemap_content_type" in
   application/xml | application/xml\;* | text/xml | text/xml\;*) ;;
@@ -488,8 +507,8 @@ require_header content-range "bytes0-$range_last/$runtime_bytes" \
   "$temporary_root/range.headers" "runtime byte-range response"
 require_header cache-control "$immutable_cache_control" \
   "$temporary_root/range.headers" "runtime byte-range response"
-require_header accept-ranges bytes "$temporary_root/range.headers" \
-  "runtime byte-range response"
+# RFC 9110 defines Accept-Ranges as advisory. Cloudflare R2 advertises it on
+# the full response but can omit it from the self-describing 206 response.
 require_content_type model/gltf-binary "$temporary_root/range.headers" \
   "runtime byte-range response"
 require_cors "$temporary_root/range.headers" "runtime byte-range response"
