@@ -100,7 +100,11 @@ test("loads a published GLB and survives viewer interactions", async ({ page }, 
   const query = new URLSearchParams({ registry: "/registry.json" });
   if (selectedAsset) query.set("asset", selectedAsset);
 
-  await page.goto(`/?${query.toString()}`);
+  const documentResponse = await page.goto(`/?${query.toString()}`);
+  expect(documentResponse).not.toBeNull();
+  expect(documentResponse!.headers()["content-security-policy"]).toContain(
+    "connect-src 'self' blob: https://assets.neuralstock.ai",
+  );
   const status = page.locator("#status");
   await expect(status).toContainText(
     /loaded from verified runtime bytes(?: and framed from published bounds)?\./,

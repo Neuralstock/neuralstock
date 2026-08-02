@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,7 @@ const releaseRoot = isAbsolute(configuredRelease)
   : resolve(process.cwd(), configuredRelease);
 const registryPath = resolve(releaseRoot, "registry.json");
 const port = Number.parseInt(process.env.NEURALSTOCK_E2E_PORT ?? "4173", 10);
+const headersPath = resolve(viewerRoot, "_headers");
 
 if (!Number.isInteger(port) || port < 1 || port > 65_535) {
   throw new Error(`NEURALSTOCK_E2E_PORT must be a valid port; received ${String(port)}.`);
@@ -25,6 +26,16 @@ if (!existsSync(registryPath)) {
     `A published NeuralStock release is required. Expected ${registryPath}. ` +
       "Set NEURALSTOCK_RELEASE_DIR to a release containing registry.json and objects/.",
   );
+}
+if (!existsSync(headersPath)) {
+  throw new Error(`Room Zero is missing its production headers. Expected ${headersPath}.`);
+}
+
+const contentSecurityPolicy = readFileSync(headersPath, "utf8").match(
+  /^\s*Content-Security-Policy:\s*(.+)$/m,
+)?.[1];
+if (!contentSecurityPolicy) {
+  throw new Error(`Room Zero production headers do not define a Content-Security-Policy.`);
 }
 
 const mediaTypes = new Map([
@@ -90,6 +101,7 @@ const server = createServer((request, response) => {
   const size = statSync(file).size;
   response.writeHead(200, {
     "Cache-Control": "no-store",
+    "Content-Security-Policy": contentSecurityPolicy,
     "Content-Length": String(size),
     "Content-Type": mediaTypes.get(extname(file)) ?? "application/octet-stream",
     "Cross-Origin-Resource-Policy": "same-origin",

@@ -83,6 +83,15 @@ pnpm wrangler r2 bucket cors set neuralstock-public \
 pnpm wrangler r2 bucket cors list neuralstock-public
 ```
 
+After changing CORS, purge the cache for the affected R2 custom-domain
+hostnames before treating the change as complete. Cloudflare notes that objects
+already cached through a custom domain can retain the earlier response headers.
+Purge `assets.neuralstock.ai` and `schemas.neuralstock.ai` by hostname, then run
+`tools/verify-production.sh` and probe representative objects with an explicit
+`Origin` header. Do not purge the whole zone or rewrite immutable objects merely
+to refresh headers. See Cloudflare's
+[R2 custom-domain CORS guidance](https://developers.cloudflare.com/r2/buckets/cors/#use-cors-with-a-custom-domain).
+
 Publish content with the repository's ordered R2 adapter rather than a loop of
 Wrangler object uploads. The adapter verifies the complete release, writes
 content-addressed objects and versioned contracts create-only with SHA-256

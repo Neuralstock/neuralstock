@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; connect-src 'self' https://assets.neuralstock.ai; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: blob: https://assets.neuralstock.ai; object-src 'none'; script-src 'self'; style-src 'self'
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; connect-src 'self' blob: https://assets.neuralstock.ai; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: blob: https://assets.neuralstock.ai; object-src 'none'; script-src 'self'; style-src 'self'
   Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff

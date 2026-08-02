@@ -20,6 +20,11 @@ EXPOSED_HEADERS = (
     "Accept-Ranges, Cache-Control, Content-Length, Content-Range, Content-Type, ETag, Last-Modified"
 )
 REDIRECT_PROBE = "/asset/neuralstock-redirect-probe/0.0.0?neuralstock_redirect_probe=1"
+SITE_CSP = next(
+    line.split(":", 1)[1].strip()
+    for line in (ROOT / "examples/room-zero/public/_headers").read_text().splitlines()
+    if line.strip().startswith("Content-Security-Policy:")
+)
 
 
 def _pretty_json(value: Any) -> bytes:
@@ -64,41 +69,53 @@ def _asset_references() -> list[tuple[str, str]]:
 def _fixture() -> dict[str, Any]:
     runtime = b"glTF" * 512
     source = b"BLENDER" * 256
+    preview = b"\x89PNG\r\n\x1a\n" + (b"NEURALSTOCK-PREVIEW" * 64)
     runtime_sha = _sha256(runtime)
     source_sha = _sha256(source)
-    first_id, first_version = _asset_references()[0]
-    manifest = {
-        "id": first_id,
-        "version": first_version,
-        "artifacts": {
-            "runtime": {
-                "uri": f"/objects/sha256/{runtime_sha[:2]}/{runtime_sha}",
-                "sha256": runtime_sha,
-                "bytes": len(runtime),
-                "media_type": "model/gltf-binary",
-            },
-            "source": {
-                "uri": f"/objects/sha256/{source_sha[:2]}/{source_sha}",
-                "sha256": source_sha,
-                "bytes": len(source),
-                "media_type": "application/x-blender",
-            },
-        },
+    preview_sha = _sha256(preview)
+    runtime_descriptor = {
+        "uri": f"/objects/sha256/{runtime_sha[:2]}/{runtime_sha}",
+        "sha256": runtime_sha,
+        "bytes": len(runtime),
+        "media_type": "model/gltf-binary",
     }
-    manifest_bytes = _pretty_json(manifest)
-    manifest_sha = _sha256(manifest_bytes)
-    manifest_uri = f"/assets/{first_id}/{first_version}/manifest.json"
-    entries = [
-        {
-            "asset": {"id": asset_id, "version": version},
-            "manifest": {
-                "uri": manifest_uri,
-                "sha256": manifest_sha,
-                "bytes": len(manifest_bytes),
+    source_descriptor = {
+        "uri": f"/objects/sha256/{source_sha[:2]}/{source_sha}",
+        "sha256": source_sha,
+        "bytes": len(source),
+        "media_type": "application/x-blender",
+    }
+    preview_descriptor = {
+        "uri": f"/objects/sha256/{preview_sha[:2]}/{preview_sha}",
+        "sha256": preview_sha,
+        "bytes": len(preview),
+        "media_type": "image/png",
+    }
+    manifests: dict[str, bytes] = {}
+    entries: list[dict[str, Any]] = []
+    for asset_id, version in _asset_references():
+        manifest = {
+            "id": asset_id,
+            "version": version,
+            "artifacts": {
+                "runtime": runtime_descriptor,
+                "source": source_descriptor,
+                "previews": [preview_descriptor],
             },
         }
-        for asset_id, version in _asset_references()
-    ]
+        manifest_bytes = _pretty_json(manifest)
+        manifest_uri = f"/assets/{asset_id}/{version}/manifest.json"
+        manifests[manifest_uri] = manifest_bytes
+        entries.append(
+            {
+                "asset": {"id": asset_id, "version": version},
+                "manifest": {
+                    "uri": manifest_uri,
+                    "sha256": _sha256(manifest_bytes),
+                    "bytes": len(manifest_bytes),
+                },
+            }
+        )
     registry: dict[str, Any] = {
         "$schema": "https://schemas.neuralstock.ai/v0.2/registry.schema.json",
         "schema_version": "0.2",
@@ -118,12 +135,15 @@ def _fixture() -> dict[str, Any]:
     return {
         "registry": _pretty_json(registry),
         "registry_value": registry,
-        "manifest": manifest_bytes,
-        "manifest_uri": manifest_uri,
+        "manifest": next(iter(manifests.values())),
+        "manifest_uri": next(iter(manifests)),
+        "manifests": manifests,
         "runtime": runtime,
-        "runtime_uri": manifest["artifacts"]["runtime"]["uri"],
+        "runtime_uri": runtime_descriptor["uri"],
         "source": source,
-        "source_uri": manifest["artifacts"]["source"]["uri"],
+        "source_uri": source_descriptor["uri"],
+        "preview": preview,
+        "preview_uri": preview_descriptor["uri"],
     }
 
 
@@ -206,7 +226,12 @@ class _Handler(BaseHTTPRequestHandler):
                     "application/xml",
                 )
             elif path == "/" or path.startswith("/asset/"):
-                self._send(200, b"<!doctype html><title>NeuralStock test</title>", "text/html")
+                self._send(
+                    200,
+                    b"<!doctype html><title>NeuralStock test</title>",
+                    "text/html",
+                    extra={"Content-Security-Policy": self.server.site_csp},  # type: ignore[attr-defined]
+                )
             else:
                 self._send(404, b"missing", "text/plain")
             return
@@ -258,13 +283,21 @@ class _Handler(BaseHTTPRequestHandler):
                 cache_control=IMMUTABLE_CACHE,
                 cors=True,
             )
-        elif path == fixture["manifest_uri"]:
+        elif path in fixture["manifests"]:
             self._send(
                 200,
-                fixture["manifest"],
+                fixture["manifests"][path],
                 "application/json",
                 cache_control=IMMUTABLE_CACHE,
                 cors=True,
+            )
+        elif path == fixture["preview_uri"]:
+            self._send(
+                200,
+                fixture["preview"],
+                "image/png",
+                cache_control=IMMUTABLE_CACHE,
+                cors=path not in self.server.preview_without_cors,  # type: ignore[attr-defined]
             )
         elif path in {fixture["runtime_uri"], fixture["source_uri"]}:
             is_runtime = path == fixture["runtime_uri"]
@@ -303,6 +336,8 @@ def _server(kind: str, fixture: dict[str, Any]) -> Iterator[ThreadingHTTPServer]
     server.kind = kind  # type: ignore[attr-defined]
     server.fixture = fixture  # type: ignore[attr-defined]
     server.stale_paths = {}  # type: ignore[attr-defined]
+    server.preview_without_cors = set()  # type: ignore[attr-defined]
+    server.site_csp = SITE_CSP  # type: ignore[attr-defined]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -462,3 +497,96 @@ def test_production_verifier_fails_closed_when_pages_bytes_stay_stale(
     assert site.stale_paths == {  # type: ignore[attr-defined]
         "/.well-known/neuralstock.json": 1,
     }
+
+
+def test_production_verifier_fails_closed_when_preview_omits_cors(
+    tmp_path: Path,
+) -> None:
+    fixture = _fixture()
+    release_root = tmp_path / "release"
+    release_root.mkdir()
+    (release_root / "registry.json").write_bytes(fixture["registry"])
+    for relative in (Path("v0.2/LICENSE"), Path("profiles/v0.2/LICENSE")):
+        target = release_root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / "LICENSE").read_bytes())
+
+    with ExitStack() as stack:
+        asset = stack.enter_context(_server("asset", fixture))
+        schema = stack.enter_context(_server("schema", fixture))
+        site = stack.enter_context(_server("site", fixture))
+        www = stack.enter_context(_server("www", fixture))
+        www.site_origin = _origin(site)  # type: ignore[attr-defined]
+        asset.preview_without_cors = {fixture["preview_uri"]}  # type: ignore[attr-defined]
+        environment = {
+            **os.environ,
+            "NEURALSTOCK_VERIFY_ASSET_ORIGIN": _origin(asset),
+            "NEURALSTOCK_VERIFY_SCHEMA_ORIGIN": _origin(schema),
+            "NEURALSTOCK_VERIFY_SITE_ORIGIN": _origin(site),
+            "NEURALSTOCK_VERIFY_WWW_ORIGIN": _origin(www),
+        }
+        completed = subprocess.run(
+            [
+                "sh",
+                str(ROOT / "tools/verify-production.sh"),
+                fixture["registry_value"]["revision"],
+                str(release_root),
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+    assert completed.returncode == 65
+    assert "preview artifact 1 for" in completed.stderr
+    assert "access-control-allow-origin '', expected '*'" in completed.stderr
+
+
+def test_production_verifier_fails_closed_when_site_csp_omits_blob(
+    tmp_path: Path,
+) -> None:
+    fixture = _fixture()
+    release_root = tmp_path / "release"
+    release_root.mkdir()
+    (release_root / "registry.json").write_bytes(fixture["registry"])
+    for relative in (Path("v0.2/LICENSE"), Path("profiles/v0.2/LICENSE")):
+        target = release_root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / "LICENSE").read_bytes())
+
+    with ExitStack() as stack:
+        asset = stack.enter_context(_server("asset", fixture))
+        schema = stack.enter_context(_server("schema", fixture))
+        site = stack.enter_context(_server("site", fixture))
+        www = stack.enter_context(_server("www", fixture))
+        www.site_origin = _origin(site)  # type: ignore[attr-defined]
+        site.site_csp = SITE_CSP.replace(  # type: ignore[attr-defined]
+            "connect-src 'self' blob:", "connect-src 'self'"
+        )
+        environment = {
+            **os.environ,
+            "NEURALSTOCK_VERIFY_ASSET_ORIGIN": _origin(asset),
+            "NEURALSTOCK_VERIFY_SCHEMA_ORIGIN": _origin(schema),
+            "NEURALSTOCK_VERIFY_SITE_ORIGIN": _origin(site),
+            "NEURALSTOCK_VERIFY_WWW_ORIGIN": _origin(www),
+        }
+        completed = subprocess.run(
+            [
+                "sh",
+                str(ROOT / "tools/verify-production.sh"),
+                fixture["registry_value"]["revision"],
+                str(release_root),
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+    assert completed.returncode == 65
+    assert "site root has content-security-policy" in completed.stderr

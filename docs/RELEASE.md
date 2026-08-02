@@ -96,9 +96,10 @@ MIT license companions—before aliases,
 reconciles the zone-level `www` 301, deploys Pages when requested, and runs the
 same complete public-contract verifier as scheduled health. That verifier
 recomputes the registry revision, compares both aliases with the immutable
-revision snapshot, and hashes a live manifest, GLB, and Blender source while
-also checking CORS, ranges, cache policy, discovery, sitemap, and a stable asset
-route. The first v0.2 publication is explicitly two-phase. Phase A uses
+revision snapshot, hashes every declared preview plus a live manifest, GLB, and
+Blender source, and checks the deployed CSP, CORS, ranges, cache policy,
+discovery, sitemap, and a stable asset route. The first v0.2 publication is
+explicitly two-phase. Phase A uses
 `neuralstock r2 sync --immutable-only` to create or exact-byte verify the entire
 immutable graph without updating aliases or the site. An operator then verifies
 public and direct-R2 bytes and indefinitely locks `v0.2/`, `profiles/v0.2/`, and
