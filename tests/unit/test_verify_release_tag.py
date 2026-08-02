@@ -74,6 +74,38 @@ def test_accepts_annotated_release_tag_on_main(tmp_path: Path) -> None:
     assert f"Verified v0.1.1 at {commit}" in result.stdout
 
 
+def test_accepts_tag_ancestor_from_a_shallow_main_checkout(tmp_path: Path) -> None:
+    repository, commit = release_repository(tmp_path)
+    (repository / "release.txt").write_text("deployment controller\n")
+    git(repository, "commit", "-am", "deployment controller")
+    git(repository, "push", "origin", "main")
+    remote = Path(git(repository, "remote", "get-url", "origin")).resolve()
+    shallow = tmp_path / "shallow"
+    subprocess.run(
+        [
+            "git",
+            "clone",
+            "--depth",
+            "1",
+            "--no-tags",
+            "--branch",
+            "main",
+            remote.as_uri(),
+            str(shallow),
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    assert git(shallow, "rev-parse", "--is-shallow-repository") == "true"
+
+    result = run_verifier(shallow, "0.1.0", commit)
+
+    assert result.returncode == 0, result.stderr
+    assert f"Verified v0.1.0 at {commit}" in result.stdout
+    assert git(shallow, "rev-parse", "--is-shallow-repository") == "false"
+
+
 def test_rejects_tag_that_is_not_on_main(tmp_path: Path) -> None:
     repository, _ = release_repository(tmp_path)
     git(repository, "switch", "--orphan", "unmerged")

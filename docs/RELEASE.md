@@ -121,12 +121,16 @@ or reads back only `schema-v0.2`, `profile-v0.2`, and the exact snapshot rule.
 
 The independent check-only JSON is uploaded once, without replacement, under
 the deterministic `neuralstock-r2-release-lock-<revision>.json` name on the
-signed-tag draft release. Dispatch `Finalize release` from that same signed tag
-with the exact revision and evidence SHA-256. The protected finalizer requires
+signed-tag draft release. Dispatch `Finalize release` from exact current
+protected `main` (or from that same signed tag before `main` advances), supplying
+the exact signed-tag commit, revision, and evidence SHA-256. The protected
+finalizer requires
 repository release immutability, downloads every draft asset by its API ID,
 accepts exactly the five attested candidate files plus that one evidence file,
 re-verifies checksums, source commit, version, revision, build attestations, and
-the complete R2 evidence, then publishes the draft exactly once. It requires a
+the complete R2 evidence, then publishes the draft exactly once. A main-based
+run must equal the freshly read protected-main head; all release subjects remain
+bound to the supplied signed-tag commit. It requires a
 fresh API readback with `immutable: true` and verifies GitHub's automatically
 generated release attestation and all six assets. If publication succeeds but a
 later check fails, the finalizer can be rerun: it accepts only the exact already-
