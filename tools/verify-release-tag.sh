@@ -120,7 +120,30 @@ if [ -n "${GITHUB_REPOSITORY:-}" ]; then
     >&2 echo "$ruleset_name does not protect creation, update, and deletion of v* tags"
     exit 65
   }
-  protection_status="protected main"
+
+  tag_ref_json=$(gh api "repos/$canonical_repository/git/ref/tags/$tag")
+  tag_object_sha=$(printf '%s' "$tag_ref_json" | jq -er '
+    if .object.type == "tag" then .object.sha
+    else error("release ref is not an annotated tag")
+    end
+  ') || {
+    >&2 echo "$tag is not an annotated signed tag"
+    exit 65
+  }
+  tag_json=$(gh api "repos/$canonical_repository/git/tags/$tag_object_sha")
+  printf '%s' "$tag_json" | jq -e \
+    --arg tag "$tag" \
+    --arg commit "$expected_commit" '
+      .tag == $tag
+      and .object.type == "commit"
+      and .object.sha == $commit
+      and .verification.verified == true
+      and .verification.reason == "valid"
+    ' >/dev/null || {
+    >&2 echo "$tag is not a valid GitHub-verified signature over $expected_commit"
+    exit 65
+  }
+  protection_status="signed tag on protected main"
 else
   protection_status="origin/main (GitHub protection not checked locally)"
 fi
