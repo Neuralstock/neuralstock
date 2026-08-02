@@ -171,7 +171,19 @@ test("loads a published GLB and survives viewer interactions", async ({ page }, 
   const cards = page.locator(".asset-card");
   const cardCount = await cards.count();
   for (let index = 0; index < cardCount; index += 1) {
-    await cards.nth(index).scrollIntoViewIfNeeded();
+    const card = cards.nth(index);
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toHaveAttribute("data-manifest-state", "loaded");
+    const preview = card.locator('.asset-card-preview img[data-verified="true"]');
+    await expect(preview).toBeVisible();
+    await expect
+      .poll(() =>
+        preview.evaluate((image) => {
+          const element = image as HTMLImageElement;
+          return element.complete && element.naturalWidth > 0;
+        }),
+      )
+      .toBe(true);
   }
   await expect(
     page.locator('.asset-card-preview img[data-verified="true"]'),

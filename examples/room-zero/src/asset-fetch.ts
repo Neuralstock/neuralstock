@@ -29,6 +29,12 @@ export function revisedPublicAssetUrl(input: string | URL | Request): string | u
 
 /** Fetch public NeuralStock assets through the current response-policy cache key. */
 export const fetchPublicAsset: FetchLike = (input, init) => {
+  const method = (init?.method ?? (input instanceof Request ? input.method : "GET"))
+    .toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
+    return globalThis.fetch(input, init);
+  }
+
   const revisedUrl = revisedPublicAssetUrl(input);
   if (revisedUrl === undefined) return globalThis.fetch(input, init);
 
