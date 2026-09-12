@@ -17,8 +17,8 @@
     "gltf-validator": "2.0.0-dev.3.10"
   },
   "devDependencies": {
-    "esbuild": "0.28.1",
-    "wrangler": "4.118.0"
+    "esbuild": "0.28.2",
+    "wrangler": "4.130.0"
   },
   "description": "NeuralStock is an open, agent-native registry of CC0 Blender assets. Every published asset pairs an editable `.blend` source with a validated GLB runtime artifact, semantic metadata, provenance, inspection results, and a reproducible build receipt.",
   "main": "index.js",
